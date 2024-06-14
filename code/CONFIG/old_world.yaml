@@ -1,0 +1,217 @@
+obstacles:
+
+        -    shape: Star
+             star:
+                     -   type: Rectangular
+                         center:
+                               - 2.2
+                               - 1.4
+                         width: 0.6
+                         height: 1.2
+
+
+        -    shape: StarTree
+             stars:
+                     -   type: Rectangular
+                         center:
+                               - 4.0
+                               - 2.1
+                         width: 1.0
+                         height: 0.2
+
+                     -   type: Rectangular
+                         center:
+                               - 4.4
+                               - 2.6
+                         width: 0.2
+                         height: 1.2
+
+workspace:
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 6.28
+                              - 2.1
+                        width: 1.8
+                        height: 0.2
+
+                    -   type: Rectangular
+                        center:
+                              - 5.48
+                              - 2.4
+                        width: 0.2
+                        height: 0.8
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 5.48
+                              - 3.84
+                        width: 0.2
+                        height: 0.7
+
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 5.2
+                              - 0.505
+                        width: 0.2
+                        height: 1.4
+
+                    -   type: Rectangular
+                        center:
+                              - 5.2
+                              - 1.1
+                        width: 1.0
+                        height: 0.2
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 3.3
+                              - 0.505
+                        width: 0.2
+                        height: 1.4
+
+                    -   type: Rectangular
+                        center:
+                              - 3.6
+                              - 1.1
+                        width: 0.8
+                        height: 0.2
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 6.83
+                              - 1.1
+                        width: 0.7
+                        height: 0.2
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 1.8
+                              - 3.5
+                        width: 0.2
+                        height: 1.4
+
+                    -   type: Rectangular
+                        center:
+                              - 2.2
+                              - 2.9
+                        width: 1.8
+                        height: 0.2
+
+                    -   type: Rectangular
+                        center:
+                              - 3.0
+                              - 3.1
+                        width: 0.2
+                        height: 0.6
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 0.2
+                              - 2.9
+                        width: 0.8
+                        height: 0.2
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 0.5
+                              - 1.2
+                        width: 1.4
+                        height: 0.2
+
+                    -   type: Rectangular
+                        center:
+                              - 1.1
+                              - 1.55
+                        width: 0.2
+                        height: 0.9
+
+        -   shape: StarTree
+            stars:
+                    -   type: Workspace
+                        center:
+                              - 3.5
+                              - 2.0
+                        width: 7.0
+                        height: 4.0
+
+                    -   type: Rectangular
+                        center:
+                              - 1.1
+                              - 0.19
+                        width: 0.2
+                        height: 0.7
+
+#nf_lambda=1e2, nf_mu = [1e25, 1e16, 1e10]
