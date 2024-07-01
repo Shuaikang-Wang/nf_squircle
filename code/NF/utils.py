@@ -22,7 +22,18 @@ def compute_all_obs(world) -> list:
     ws_all_obs = all_ws + all_obs
     return ws_all_obs
 
-def compute_squicle_length_ray(q, width, height, theta, s):
+def compute_squicle_length_ray(width, height, q, theta, s):
+    rotation = np.array([[np.cos(theta), np.sin(theta)],
+                         [-np.sin(theta), np.cos(theta)]])
+    q = rotation @ q
+    normalized_q = q / np.linalg.norm(q)
+    transformed_q = np.array([normalized_q[0] / width, normalized_q[1] / height])
+    normalized_transformed_q = transformed_q / np.linalg.norm(transformed_q)
+    scale = math.sqrt((normalized_transformed_q[0] * width) ** 2 + (normalized_transformed_q[1] * height) ** 2)
+    rho_q = scale * math.sqrt(2 / (1 + math.sqrt(1 - 4 * s**2 * (normalized_transformed_q[0] * normalized_transformed_q[1])**2)))
+    return rho_q
+
+def compute_squicle_length_ray_plt(q, width, height, theta, s):
     rotation = np.array([[np.cos(theta), np.sin(theta)],
                          [-np.sin(theta), np.cos(theta)]])
     q = rotation @ q

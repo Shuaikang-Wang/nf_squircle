@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 
 import numpy as np
 import random
-from sympy import symbols, Eq, solve
+# from sympy import symbols, Eq, solve
 
 
 
@@ -87,15 +87,17 @@ class Lidar(object):
                     ws_1 = ws[1]
                     for ws_i in ws[1:]:
                         if ws_i.check_point_inside(point):
-                            ws_1.local_points.append(point)
-                            ws_1.accumulated_local_points.append(point)
+                            point_with_robot = np.array([point[0], point[1], pose[0], pose[1], ws_i.theta]) # x, y, x_r, y_r, theta
+                            ws_1.local_points.append(point_with_robot)
+                            ws_1.accumulated_local_points.append(point_with_robot)
                             return
                 for obs in world.obstacles:
                     obs_0 = obs[0]
                     for obs_i in obs:
                         if obs_i.check_point_inside(point):
-                            obs_0.local_points.append(point)
-                            obs_0.accumulated_local_points.append(point)
+                            point_with_robot = np.array([point[0], point[1], pose[0], pose[1], obs_i.theta])
+                            obs_0.local_points.append(point_with_robot)
+                            obs_0.accumulated_local_points.append(point_with_robot)
                             return
             # return point
         else:

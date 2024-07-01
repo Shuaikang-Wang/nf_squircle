@@ -6,18 +6,15 @@ import datetime
 from moviepy.editor import ImageSequenceClip
 
 # 设置生成的视频文件名和路径
-snap_path = "DATA/figure_data/"
-current_snap = datetime.datetime.now().strftime("snap_%Y_%m_%d")
-current_snap = "snap_2024_04_07"
-folder_snap_path = os.path.join(snap_path, current_snap)
+snap_path = "RESULT/results/"
 
 
-name_path = "DATA/gif_data/"
-current_gif = datetime.datetime.now().strftime("video_%Y_%m_%d")
+name_path = "RESULT"
+current_gif = "ani"
 folder_name_path = os.path.join(name_path, current_gif)
 
 
-def make_video(image_folder, output_vid, fps=24):
+def make_video(image_folder, output_vid, fps=12):
     # 获取文件夹内所有图片的路径
     images = []
     files = os.listdir(image_folder)
@@ -31,7 +28,7 @@ def make_video(image_folder, output_vid, fps=24):
 
 
 # 使用示例
-make_video(folder_snap_path, folder_name_path + ".mp4", fps=12)
+make_video(snap_path, folder_name_path + ".mp4", fps=4)
 
 # # 读取所有 PNG 图片
 # images = []

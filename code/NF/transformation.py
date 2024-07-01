@@ -64,19 +64,19 @@ class ForestToStar(object):
         if ray[0] > 0.0 and ray[1] >= 0.0:
             virtual_width = obs_parent.center[0] + obs_parent.width / 2 - virtual_center[0]
             virtual_height = obs_parent.center[1] + obs_parent.height / 2 - virtual_center[1]
-            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray)
+            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray, 0.0, 0.99)
         elif ray[0] <= 0.0 and ray[1] > 0.0:
             virtual_width = virtual_center[0] - (obs_parent.center[0] - obs_parent.width / 2)
             virtual_height = obs_parent.center[1] + obs_parent.height / 2 - virtual_center[1]
-            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray)
+            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray, 0.0, 0.99)
         elif ray[0] < 0.0 and ray[1] <= 0.0:
             virtual_width = virtual_center[0] - (obs_parent.center[0] - obs_parent.width / 2)
             virtual_height = virtual_center[1] - (obs_parent.center[1] - obs_parent.height / 2) 
-            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray)
+            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray, 0.0, 0.99)
         else:
             virtual_width = obs_parent.center[0] + obs_parent.width / 2 - virtual_center[0]
             virtual_height = virtual_center[1] - (obs_parent.center[1] - obs_parent.height / 2) 
-            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray)
+            virtual_length_ray = compute_squicle_length_ray(virtual_width, virtual_height, ray, 0.0, 0.99)
         return virtual_length_ray
     
     def compute_virtual_ws(self, ws, ws_son):
@@ -294,14 +294,14 @@ class ForestToStar(object):
                 if obs[0].type == 'Workspace':
                     if depth == 1:
                         virtual_ws = self.compute_virtual_ws(obs[depth - 1], obs[depth])
-                        rho_i = compute_squicle_length_ray(virtual_ws.width / 2, virtual_ws.height / 2, q - virtual_ws.center)
+                        rho_i = compute_squicle_length_ray(virtual_ws.width / 2, virtual_ws.height / 2, q - virtual_ws.center, virtual_ws.theta, virtual_ws.s)
                         maxVal = (obs[depth].width / 2)**2 + (obs[depth].height / 2)**2
                         v_i = rho_i * (1 + all_leaves_beta[i] / maxVal) / distance(q, virtual_ws.center)
                         all_v.append(v_i)
                     else:
                         if self.check_parent_center_inside(obs[depth - 1], obs[depth]):
                             rho_i = compute_squicle_length_ray(obs[depth - 1].width / 2, obs[depth - 1].height / 2,
-                                                               q - obs[depth - 1].center)
+                                                               q - obs[depth - 1].center, virtual_ws.theta, virtual_ws.s)
                             center = obs[depth - 1].center
                         else:
                             rho_i = self.compute_virtual_length_ray(obs[depth - 1], obs[depth], q)
@@ -315,7 +315,7 @@ class ForestToStar(object):
                         all_v.append(v_i)
                 else:
                     if self.check_parent_center_inside(obs[depth - 1], obs[depth]):
-                        rho_i = compute_squicle_length_ray(obs[depth - 1].width / 2, obs[depth - 1].height / 2, q - obs[depth - 1].center)
+                        rho_i = compute_squicle_length_ray(obs[depth - 1].width / 2, obs[depth - 1].height / 2, q - obs[depth - 1].center, obs[depth - 1].theta, obs[depth - 1].s)
                         center = obs[depth - 1].center
 
                     else:

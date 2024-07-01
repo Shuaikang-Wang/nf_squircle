@@ -6,6 +6,7 @@ sys.path.append(os.getcwd())
 import numpy as np
 import yaml
 import math
+from scipy.spatial import distance_matrix
 
 from ROBOT.lidar import Lidar
 from ROBOT.utils import distance
@@ -136,8 +137,28 @@ class Robot(object):
         for obs in self.real_world.obstacles:
             obs_0 = obs[0]
             global_lidar_points += obs_0.accumulated_local_points
-        global_lidar_points = list(np.unique(np.array(global_lidar_points), axis=0))
+        points_2d = np.array(global_lidar_points)
+        global_lidar_points = self.remove_close_points(points_2d, threshold=0.004)
+        # _, indices = np.unique(points_2d, axis=0, return_index=True)
+        # unique_global_lidar_points = np.array(global_lidar_points)[indices]
+        # global_lidar_points = unique_global_lidar_points.tolist()
+        # print("global_lidar_points", global_lidar_points)
         self.real_world.global_lidar_points = global_lidar_points
+
+    @staticmethod
+    def remove_close_points(points, threshold):
+        points_array = np.array(points)
+        dist_matrix = distance_matrix(points_array[:, :2], points_array[:, :2])
+
+        keep_indices = []
+        processed = set()
+
+        for i in range(len(points)):
+            if i not in processed: 
+                keep_indices.append(i)
+            close_points = np.where(dist_matrix[i] < threshold)[0]
+            processed.update(close_points)
+        return [points[i] for i in keep_indices]
 
     def control_input(self, control_input):
         x, y, theta = self.pose[:]

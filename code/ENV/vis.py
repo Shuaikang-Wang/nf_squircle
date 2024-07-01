@@ -6,8 +6,9 @@ sys.path.append(os.getcwd())
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-from skimage.draw import line
+# from skimage.draw import line
 from matplotlib.colors import ListedColormap
+from matplotlib.patches import Polygon
 import random
 import math
 
@@ -40,12 +41,49 @@ def plot_cluster(ax, sk_clu, world):
     sk_clu.draw_results(ax, world.cluster_points)
 
 
+def plot_polygon_list(ax, polygon_list):
+    for polygon in polygon_list:
+        # print("polygon", polygon)
+        poly = Polygon(polygon, edgecolor='k', linestyle='-', linewidth=2.5, fill=False)
+        ax.add_patch(poly)
+
+
+def plot_fitting_squircle(ax, world):
+    squircle_group = world.squircle_data
+    for squircle in squircle_group:
+        plot_squircle(ax, squircle[0], squircle[1] / 2, squircle[2] / 2, squircle[3], squircle[4],
+                        line_color = 'b', line_style = '--', line_width = 2.5, plot_z_order = 40)
+
+
 def plot_cluster_segment(ax, world):
     all_cluster_segments = world.all_cluster_segments
-    for cluster_segments in all_cluster_segments:
+    for cluster_segments_with_s in all_cluster_segments:
+        cluster_segments = cluster_segments_with_s[:-1]
         for segment in cluster_segments:
             segment = np.array(segment)
             ax.plot(segment[-1, 0], segment[-1, 1], 'o', color='r', markersize=6, zorder=36)
+
+
+def plot_nm_path(ax, path):
+    path_x = []
+    path_y = []
+    path_theta = []
+    for path_i in path[1:-1]:
+        ax.plot(path_i[0], path_i[1], '.k')
+        path_x.append(path_i[0])
+        path_y.append(path_i[1])
+        path_theta.append(path_i[2])
+    path_x.append(path[-1][0])
+    path_y.append(path[-1][1])
+    path_theta.append(path[-1][2])
+    # print("final waypoint", self.path[-1])
+    # for i in range(len(path_x)):
+    #     ax.quiver(path_x[i], path_y[i], np.cos(path_theta[i]), np.sin(path_theta[i]), units='xy', width=0.05,
+    #               headwidth=3.3, scale=1 / 0.5, color='red', zorder=2)
+    near_path_x = [path[0][0], path[1][0]]
+    near_path_y = [path[0][1], path[1][1]]
+    ax.plot(near_path_x, near_path_y, ':', color='gold', linewidth=2.0, zorder=1)
+    ax.plot(path_x, path_y, '-', color='gold', linewidth=2.0, zorder=1)
 
 
 def plot_estimated_squircles(ax, world):
@@ -78,6 +116,7 @@ def plot_estimated_squircles(ax, world):
 
 
 def plot_trajectory(ax, trajectory):
+    # print("trajectory", trajectory)
     path_x = trajectory[0][1:]
     path_y = trajectory[1][1:]
     if len(path_x) == 1:
@@ -183,14 +222,14 @@ def plot_occupancy_world(ax, main_execute, grid_map, grid_wall, grid_resolution)
     for point in obstacle_points:
         grid_x = int(point[0] / grid_resolution)
         grid_y = int(point[1] / grid_resolution)
-        if grid_x <= int(main_execute.robot.real_world.x_limits[0] / grid_resolution):
-            grid_x = int(main_execute.robot.real_world.x_limits[0] / grid_resolution) + 1
-        if grid_x >= int(main_execute.robot.real_world.x_limits[1] / grid_resolution):
-            grid_x = int(main_execute.robot.real_world.x_limits[1] / grid_resolution) - 1
-        if grid_y <= int(main_execute.robot.real_world.y_limits[0] / grid_resolution):
-            grid_y = int(main_execute.robot.real_world.y_limits[0] / grid_resolution) + 1
-        if grid_y >= int(main_execute.robot.real_world.y_limits[1] / grid_resolution):
-            grid_y = int(main_execute.robot.real_world.y_limits[1] / grid_resolution) - 1
+        if grid_x <= int(main_execute.forest_world.workspace[0][0].x_limits()[0] / grid_resolution):
+            grid_x = int(main_execute.forest_world.workspace[0][0].x_limits()[0] / grid_resolution) + 1
+        if grid_x >= int(main_execute.forest_world.workspace[0][0].x_limits()[1] / grid_resolution):
+            grid_x = int(main_execute.forest_world.workspace[0][0].x_limits()[1] / grid_resolution) - 1
+        if grid_y <= int(main_execute.forest_world.workspace[0][0].y_limits()[0] / grid_resolution):
+            grid_y = int(main_execute.forest_world.workspace[0][0].y_limits()[0] / grid_resolution) + 1
+        if grid_y >= int(main_execute.forest_world.workspace[0][0].y_limits()[1] / grid_resolution):
+            grid_y = int(main_execute.forest_world.workspace[0][0].y_limits()[1] / grid_resolution) - 1
         # print("int(main_execute.robot.real_world.x_limits[1] / grid_resolution)", int(main_execute.robot.real_world.x_limits[1] / grid_resolution))
         # print("grad_x", grid_x)
         rr, cc = line(robot_y, robot_x, grid_y, grid_x)
@@ -223,14 +262,14 @@ def plot_occupancy_world(ax, main_execute, grid_map, grid_wall, grid_resolution)
         
             grid_x = int(point_x / grid_resolution)
             grid_y = int(point_y / grid_resolution)
-            if grid_x <= int(main_execute.robot.real_world.x_limits[0] / grid_resolution):
-                grid_x = int(main_execute.robot.real_world.x_limits[0] / grid_resolution) + 1
-            if grid_x >= int(main_execute.robot.real_world.x_limits[1] / grid_resolution):
-                grid_x = int(main_execute.robot.real_world.x_limits[1] / grid_resolution) - 1
-            if grid_y <= int(main_execute.robot.real_world.y_limits[0] / grid_resolution):
-                grid_y = int(main_execute.robot.real_world.y_limits[0] / grid_resolution) + 1
-            if grid_y >= int(main_execute.robot.real_world.y_limits[1] / grid_resolution):
-                grid_y = int(main_execute.robot.real_world.y_limits[1] / grid_resolution) - 1
+            if grid_x <= int(main_execute.forest_world.workspace[0][0].x_limits()[0] / grid_resolution):
+                grid_x = int(main_execute.forest_world.workspace[0][0].x_limits()[0] / grid_resolution) + 1
+            if grid_x >= int(main_execute.forest_world.workspace[0][0].x_limits()[1] / grid_resolution):
+                grid_x = int(main_execute.forest_world.workspace[0][0].x_limits()[1] / grid_resolution) - 1
+            if grid_y <= int(main_execute.forest_world.workspace[0][0].y_limits()[0] / grid_resolution):
+                grid_y = int(main_execute.forest_world.workspace[0][0].y_limits()[0] / grid_resolution) + 1
+            if grid_y >= int(main_execute.forest_world.workspace[0][0].y_limits()[1] / grid_resolution):
+                grid_y = int(main_execute.forest_world.workspace[0][0].y_limits()[1] / grid_resolution) - 1
             grid_wall[grid_y, grid_x] = 2
     noise_gain = 0.01
     for i, point in enumerate(current_points):
@@ -241,14 +280,14 @@ def plot_occupancy_world(ax, main_execute, grid_map, grid_wall, grid_resolution)
         
         grid_x = int(point_x / grid_resolution)
         grid_y = int(point_y / grid_resolution)
-        if grid_x <= int(main_execute.robot.real_world.x_limits[0] / grid_resolution):
-            grid_x = int(main_execute.robot.real_world.x_limits[0] / grid_resolution) + 1
-        if grid_x >= int(main_execute.robot.real_world.x_limits[1] / grid_resolution):
-            grid_x = int(main_execute.robot.real_world.x_limits[1] / grid_resolution) - 1
-        if grid_y <= int(main_execute.robot.real_world.y_limits[0] / grid_resolution):
-            grid_y = int(main_execute.robot.real_world.y_limits[0] / grid_resolution) + 1
-        if grid_y >= int(main_execute.robot.real_world.y_limits[1] / grid_resolution):
-            grid_y = int(main_execute.robot.real_world.y_limits[1] / grid_resolution) - 1
+        if grid_x <= int(main_execute.forest_world.workspace[0][0].x_limits()[0] / grid_resolution):
+            grid_x = int(main_execute.forest_world.workspace[0][0].x_limits()[0] / grid_resolution) + 1
+        if grid_x >= int(main_execute.forest_world.workspace[0][0].x_limits()[1] / grid_resolution):
+            grid_x = int(main_execute.forest_world.workspace[0][0].x_limits()[1] / grid_resolution) - 1
+        if grid_y <= int(main_execute.forest_world.workspace[0][0].y_limits()[0] / grid_resolution):
+            grid_y = int(main_execute.forest_world.workspace[0][0].y_limits()[0] / grid_resolution) + 1
+        if grid_y >= int(main_execute.forest_world.workspace[0][0].y_limits()[1] / grid_resolution):
+            grid_y = int(main_execute.forest_world.workspace[0][0].y_limits()[1] / grid_resolution) - 1
         grid_wall[grid_y, grid_x] = 1
     newcolors = (['None', '#ffb7c0', '#ffb7c0'])
     newcmap = ListedColormap(newcolors[::1]) # 重构为新的colormap
@@ -546,9 +585,6 @@ def plot_four_ax(ax1, ax2, ax3, ax4, main_execute):
 
     # plot forest
     plot_forest_world(ax4, main_execute)
-
-
-from matplotlib.patches import Polygon
 
 
 def test_data(ax1, ax2, ax3, ax4, main_execute):

@@ -17,6 +17,7 @@ class World(object):
         self.global_lidar_points = []
         self.cluster_points = []
         self.all_cluster_segments = []
+        self.squircle_data = []
 
     @property
     def config(self) -> dict:
@@ -245,7 +246,7 @@ class Rectangular(object):
     #     #     return True
     #     return False
 
-    def workspace_meshgrid(self, resolution=0.05, threshold=0.0) -> Tuple[np.ndarray, np.ndarray]:
+    def workspace_meshgrid(self, resolution=0.01, threshold=0.0) -> Tuple[np.ndarray, np.ndarray]:
         # 0.05
         x_min, x_max = self.x_limits()
         y_min, y_max = self.y_limits()

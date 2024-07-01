@@ -18,6 +18,7 @@ from NF.geometry import World
 from NF.vis import plot_world
 from  NF.geometry import Rectangular
 import test_cluster
+from ENV.cluster import SklearnCluster
 
 import pickle
 import datetime
@@ -37,11 +38,13 @@ robot_world = RobotWorld()
 #                    np.array([0.5, 1.8, 0.0]), np.array([0.5, 2.7, 0.0]), np.array([0.3, 3.5, 0.0]),
 #                    np.array([2.5, 3.5, 0.0]), np.array([3.5, 3.5, 0.0]), np.array([3.5, 1.5, 0.0])]
 
-start_pose_list = [np.array([3.5, 0.5, 0.0]), np.array([4.0, 1.5, 0.0]), np.array([4.5, 1.6, 0.0])]
+start_pose_list = [np.array([3.2, 0.8, 0.0])]
 
 # start_pose_list = [np.array([3.5, 0.5, 0.0])]
 
 total_lidar_points = None
+
+sk_clu = SklearnCluster(eps=0.12, min_samples=5)
 
 for i, start_pose in enumerate(start_pose_list):
     # if i not in [2, 3, 5, 6, 7, 8]:
@@ -54,7 +57,7 @@ for i, start_pose in enumerate(start_pose_list):
     y_ell_init_list = [1.0]
     a_init_list = [0.1]
     b_init_list = [0.1]
-    s_init_list = [0.91]
+    s_init_list = [0.5]
     theta_init_list = [1.0]
 
     folder_path = './RESULT/fitting/multi_lidar_data_cluster_with_theta/goal_' + str(i)
@@ -62,17 +65,13 @@ for i, start_pose in enumerate(start_pose_list):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    lidar_obs_points = robot.lidar_obs_points
-    if total_lidar_points is None:
-        total_lidar_points = lidar_obs_points
-    else:
-        total_lidar_points = np.vstack((total_lidar_points, lidar_obs_points))
+    total_lidar_points = real_world.global_lidar_points
     # lidar_obs_points = total_lidar_points
-
-    sk_clu = test_cluster.SklearnCluster()
-    cluster_points = sk_clu.cluster(total_lidar_points)
     # print("total_lidar_points", total_lidar_points)
-    print("total_lidar_points number", len(total_lidar_points))
+    # print("total_lidar_points number", len(total_lidar_points))
+    cluster_points = sk_clu.cluster(np.array(total_lidar_points))
+    # print("cluster_points", cluster_points)
+    
     print("%%%%%%%%%%%%%%%% cluster set number %%%%%%%%%%%%%%%%%%%%%%%%%", len(cluster_points))
 
     i = 0
@@ -101,34 +100,29 @@ for i, start_pose in enumerate(start_pose_list):
         # ax = plot_world(real_world, start_pose, fig)
         for obs_group in real_world.obstacles:
             for obs in obs_group:
-                sq_esti.plot_squircle(ax, obs.center, obs.width, obs.height, 0.5, s=0.99)
+                sq_esti.plot_squircle(ax, obs.center, obs.width, obs.height, obs.theta, s=obs.s)
         plot_robot_in_world(ax, robot)
         plot_start_and_goal(ax, start_pose, goal_pose)
 
-        # for point in total_lidar_points:
+        # for point in total_lidar_points: 
         #     ax.scatter(point[0], point[1], s=20, c='g', marker='o', zorder=2)
 
         sk_clu.draw_results(ax, total_lidar_points)
 
         for k, point_set in enumerate(cluster_points):
-            lidar_obs_points = point_set
+            lidar_obs_points = np.array(point_set)
 
             fitting_center, fitting_width, fitting_height, fitting_theta, fitting_s = \
                 sq_esti.fitting(lidar_obs_points, x_ell_init, y_ell_init, a_init, b_init, theta_init, s_init)
 
             print("fitting results", fitting_center, fitting_width, fitting_height, fitting_theta, fitting_s)
 
-            estimated_squircle = Rectangular("Rectangular", fitting_center, fitting_width, fitting_height)
-            if not sq_esti.check_valid(estimated_squircle, lidar_obs_points):
-                plt.close('all')
-                continue
-
             sq_esti.plot_squircle(ax, fitting_center, fitting_width, fitting_height, fitting_theta, s=fitting_s, color='r', linestyle='--')
 
-        file_name = "theta_" + str(i) + ".png"
+        # file_name = "theta_" + str(i) + ".png"
         # print("path", os.path.join(folder_path, file_name))
-        plt.savefig(os.path.join(folder_path, file_name), dpi=600)
-        print("=============figure is saved==============")
+        # plt.savefig(os.path.join(folder_path, file_name), dpi=600)
+        # print("=============figure is saved==============")
         i += 1
-        # plt.show()
-        plt.close('all')
+        plt.show()
+        # plt.close('all')

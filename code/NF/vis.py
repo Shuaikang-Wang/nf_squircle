@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import numpy as np
 
-from NF.utils import compute_squicle_length_ray, distance
+from NF.utils import compute_squicle_length_ray_plt, distance
 from NF.geometry import Workspace
 from ROBOT.vis import plot_robot, plot_lidar
 from ROBOT.lidar import Lidar
@@ -56,9 +56,9 @@ def plot_world(ax, world):
     plot_workspace_boundary(ax, world.workspace)
     plot_obstacle_boundary(ax, world.obstacles)
     # plot_workspace_boundary(ax, world.workspace, line_color = 'k',
-    #                         line = (0, (1, 1)), line_width = 1.6, z_order=15)
+                            # line = (0, (1, 1)), line_width = 1.6, z_order=15)
     # plot_obstacle_boundary(ax, world.obstacles, line_color = 'k',
-    #                        line = (0, (1, 1)), line_width = 1.6, z_order=15)
+                        #    line = (0, (1, 1)), line_width = 1.6, z_order=15)
     # new_world = World('../complex_world/auto_config/new_tsp_world.yaml')
     # plot_new_obstacle(ax, new_world.obstacles)
     return ax
@@ -174,25 +174,25 @@ def plot_fill_workspace(ax, workspace):
         q = np.array([xx, yy])
         threshold = 0.001
         if distance(ws_i.center, q) < \
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
             zz = 0
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                    compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
+                    compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
             zz = 1.0
         elif (distance(ws_i.center, q) >
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
                 (distance(ws_i.center, q) <
-                    compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
+                    compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
             zz = 1.5
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                    compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
+                    compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
             zz = 2.0
         elif distance(ws_i.center, q) > \
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
             zz = 2.5
         else:
             zz = 3.0
@@ -208,25 +208,25 @@ def plot_fill_workspace(ax, workspace):
         q = np.array([xx, yy])
         threshold = 0.001
         if distance(ws_i.center, q) < \
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
             zz = 0
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                    compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
+                    compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
             zz = 1.0
         elif (distance(ws_i.center, q) >
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
                 (distance(ws_i.center, q) <
-                    compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
+                    compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
             zz = 1.5
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                    compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
+                    compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
             zz = 2.0
         elif distance(ws_i.center, q) > \
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
             zz = 2.5
         else:
             zz = 3.0
@@ -242,25 +242,25 @@ def plot_fill_workspace(ax, workspace):
         q = np.array([xx, yy])
         threshold = 0.001
         if distance(ws_i.center, q) < \
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
             zz = 0
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                    compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
+                    compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
             zz = 1.0
         elif (distance(ws_i.center, q) >
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
                 (distance(ws_i.center, q) <
-                    compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
+                    compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
             zz = 1.5
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                    compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
+                    compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
             zz = 2.0
         elif distance(ws_i.center, q) > \
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
             zz = 2.5
         else:
             zz = 3.0
@@ -276,25 +276,25 @@ def plot_fill_workspace(ax, workspace):
         q = np.array([xx, yy])
         threshold = 0.001
         if distance(ws_i.center, q) < \
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
             zz = 0
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                    compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
+                    compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
             zz = 1.0
         elif (distance(ws_i.center, q) >
-                compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
+                compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold) and \
                 (distance(ws_i.center, q) <
-                    compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
+                    compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold):
             zz = 1.5
         elif (distance(ws_i.center, q) >=
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) - threshold) and \
                 (distance(ws_i.center, q) <=
-                 compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
+                 compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold):
             zz = 2.0
         elif distance(ws_i.center, q) > \
-                compute_squicle_length_ray(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
+                compute_squicle_length_ray_plt(q - infla_ws.center, infla_ws.width / 2, infla_ws.height / 2, infla_ws.theta, infla_ws.s) + threshold:
             zz = 2.5
         else:
             zz = 3.0
@@ -316,15 +316,15 @@ def plot_fill_workspace(ax, workspace):
             for xx, yy in zip(xv.ravel(), yv.ravel()):
                 q = np.array([xx, yy])
                 if distance(ws_i.center, q) < \
-                        compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
+                        compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
                     zz = 0
                 elif (distance(ws_i.center, q) >=
-                        compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
+                        compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
                         (distance(ws_i.center, q) <=
-                         compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
+                         compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
                     zz = 1.0
                 elif distance(ws_i.center, q) > \
-                         compute_squicle_length_ray(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold:
+                         compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold:
                     zz = 2.0
                 else:
                     zz = 3.0
@@ -347,15 +347,15 @@ def plot_fill_obstacle(ax, obstacles):
             for xx, yy in zip(xv.ravel(), yv.ravel()):
                 q = np.array([xx, yy])
                 if distance(obs_i.center, q) < \
-                        compute_squicle_length_ray(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) - threshold:
+                        compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) - threshold:
                     zz = 0
                 elif (distance(obs_i.center, q) >=
-                      compute_squicle_length_ray(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) - threshold) and \
+                      compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) - threshold) and \
                         (distance(obs_i.center, q) <=
-                         compute_squicle_length_ray(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) + threshold):
+                         compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) + threshold):
                     zz = 1.0
                 elif distance(obs_i.center, q) > \
-                        compute_squicle_length_ray(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) + threshold:
+                        compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) + threshold:
                     zz = 2.0
                 else:
                     zz = 3.0
@@ -371,7 +371,7 @@ def plot_squircle(ax, center, width, height, theta, s, line_color = 'k', line_st
     traj_y = []
     for angle_i in angle_list:
         q = np.array([np.cos(angle_i), np.sin(angle_i)])
-        rho_i = compute_squicle_length_ray(q, width, height, theta, s)
+        rho_i = compute_squicle_length_ray_plt(q, width, height, theta, s)
         traj_x_i = center[0] + rho_i * np.cos(angle_i)
         traj_y_i = center[1] + rho_i * np.sin(angle_i)
         # rotated_x_i = (traj_x_i - center[0]) * np.cos(theta) - (traj_y_i - center[1]) * np.sin(theta) + \
@@ -684,7 +684,7 @@ def plot_robot_lidar(ax, nf, current_pose):
 
 
 def plot_contour(ax, nf):
-    xx, yy = nf.world.workspace[0][0].workspace_meshgrid()
+    xx, yy = nf.world.workspace[0][0].workspace_meshgrid(resolution=0.05)
     zz_nav = nf.evaluate_potential(xx, yy, threshold=0.1)
     # contour_levels = [0, 0.005, 0.02, 0.05, 0.1, 0.2, 0.4, 0.5, 0.63, 0.7, 0.9, 1.0]
     contour_levels = [0, 0.005, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.9,1.0]
@@ -838,14 +838,14 @@ def plot_saved_trajectory(ax, nf, linestyle='-', color='r', data_file = '../comp
     # plot_lidar(ax, current_pose, lidar_points=lidar_points, plot_z_order = 49)
 
 
-def plot_path_on_contour(nf, start_pose, fig, **kwargs):
+def plot_path_on_contour(ax, nf, start_pose, **kwargs):
     # nf.save_vector_follow_path(start_pose,
     #                            save_path = '../complex_world/auto_results/RRT/tsp_trajectory_data_22.txt')
     # nf.save_vector_follow_path(start_pose,
     #                            save_path='../static_NF/path_1.txt')
-    ax = plot_world(nf.world, start_pose, fig)
-    plot_task_area_1(ax)
-    # plot_contour(ax, nf)
+    plot_world(ax, nf.world)
+    # plot_task_area_1(ax)
+    plot_contour(ax, nf)
     # nf.save_evaluate_gradient(threshold=0.0)
     # resave_potential(nf)
     # goal_pose = [1.2, 3.8, np.pi / 2]
@@ -857,10 +857,10 @@ def plot_path_on_contour(nf, start_pose, fig, **kwargs):
     # current_pose = [3.8, 2.8, 2*np.pi/5]
     # plot_robot_lidar(ax, nf, current_pose)
 
-    plot_saved_trajectory(ax, nf, linestyle='-', color='orange',
-                          data_file='../complex_world/auto_results/RRT/tsp_trajectory_data.txt')
-    plot_saved_trajectory(ax, nf, linestyle='-', color='g',
-                          data_file='../complex_world/auto_results/ONF/tsp_trajectory_data.txt')
+    # plot_saved_trajectory(ax, nf, linestyle='-', color='orange',
+    #                       data_file='../complex_world/auto_results/RRT/tsp_trajectory_data.txt')
+    # plot_saved_trajectory(ax, nf, linestyle='-', color='g',
+    #                       data_file='../complex_world/auto_results/ONF/tsp_trajectory_data.txt')
     # plot_saved_trajectory(ax, nf, linestyle='-', color='b',
     #                       data_file='../complex_world/auto_results/NF/tsp_trajectory_data.txt')
     # plot_saved_trajectory(ax, nf, linestyle='-', color='r',

@@ -118,6 +118,84 @@ class NavigationMap(object):
         path.append([shortest[-1].x, shortest[-1].y, goal_pose[2]])
         self.path = path
 
+    def construct_planner_rect_multi_goal(self, start_pose, goal_pose_list, polygon_list):
+        self.vis_graph_planner = VisGraph()
+        polys_vg = []
+        for poly_i in polygon_list:
+            poly_vg_i = []
+            for point_j in poly_i:
+                poly_vg_i.append(Point(point_j[0], point_j[1]))
+            polys_vg.append(poly_vg_i)
+        self.vis_graph_planner.build(polys_vg)
+
+        all_path = []
+        is_symmetric = False
+        for i, goal_pose in enumerate(goal_pose_list):
+            goal_point = goal_pose[0:2]
+            if i == 0:
+                start_point = start_pose[0:2]
+                symmetric_start_point = start_point
+                
+                for polygon in polygon_list:
+                    if self.is_point_inside_polygon(start_point, polygon):
+                        min_index = None
+                        min_dis = 100
+                        is_symmetric = True
+                        for i, vertex_i in enumerate(polygon):
+                            if self.point_to_segment_distance(vertex_i, polygon[(i + 1) % len(polygon)],
+                                                            start_point) < min_dis:
+                                min_index = i
+                                min_dis = self.point_to_segment_distance(vertex_i, polygon[(i + 1) % len(polygon)],
+                                                                        start_point)
+                        symmetric_start_point = self.symmetric_point(start_point[0: 2],
+                                                                    [polygon[min_index % len(polygon)],
+                                                                    polygon[(min_index + 1) % len(polygon)]],
+                                                                    dis=0.02)
+                        break
+
+                shortest = self.vis_graph_planner.shortest_path(
+                    Point(symmetric_start_point[0], symmetric_start_point[1]),
+                    Point(goal_point[0], goal_point[1]))
+                all_path += shortest
+            else:
+                start_point = goal_pose_list[i - 1][0:2]
+                shortest = self.vis_graph_planner.shortest_path(
+                    Point(start_point[0], start_point[1]),
+                    Point(goal_point[0], goal_point[1]))
+                all_path += shortest[1:]
+        
+        if is_symmetric:
+            path = [start_pose[0:2]]
+        else:
+            path = []
+
+        shortest = all_path
+        for i, point_i in enumerate(shortest[: -1]):
+            if i == 0 and is_symmetric:
+                continue
+            if i == 0:
+                theta_i = 0.0
+            else:
+                theta_i = np.arctan2(point_i.y - shortest[i - 1].y, point_i.x - shortest[i - 1].x)
+            theta_i_1 = np.arctan2(shortest[i + 1].y - point_i.y, shortest[i + 1].x - point_i.x)
+            if theta_i < 0:
+                theta_i = theta_i + 2 * np.pi
+            if theta_i_1 < 0:
+                theta_i_1 = theta_i_1 + 2 * np.pi
+            theta_diff = (theta_i_1 - theta_i) / 2
+            theta = theta_diff + theta_i
+            if abs(theta_i_1 - theta_i) > np.pi:
+                theta = theta - np.pi
+            theta = (theta + np.pi) % (2 * np.pi) - np.pi
+            # print("theta", theta)
+            path.append([point_i.x, point_i.y,
+                         theta])
+            
+        path.append([shortest[-1].x, shortest[-1].y, goal_pose[2]])
+        self.path = path
+            
+            
+
     def construct_planner_no_ws(self, start_point, goal_point, polygon_list):
         if self.planner_type == 'delaunay':
             self.delaunay_planner = DelaunayTriangulation()

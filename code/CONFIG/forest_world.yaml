@@ -16,7 +16,7 @@ obstacles:
                      -   type: Rectangular
                          center:
                                - 1.81
-                               - 1.16
+                               - 1.06
                          width: 0.2
                          height: 0.2
                          theta: 0.0
@@ -27,7 +27,7 @@ obstacles:
                      -   type: Rectangular
                          center:
                                - 1.81
-                               - 1.64
+                               - 1.74
                          width: 0.2
                          height: 0.2
                          theta: 0.0
@@ -39,7 +39,7 @@ obstacles:
                      -   type: Rectangular
                          center:
                                - 2.95
-                               - 1.16
+                               - 1.06
                          width: 0.2
                          height: 0.2
                          theta: 0.0
@@ -50,7 +50,7 @@ obstacles:
                      -   type: Rectangular
                          center:
                                - 2.95
-                               - 1.64
+                               - 1.74
                          width: 0.2
                          height: 0.2
                          theta: 0.0
@@ -196,17 +196,6 @@ workspace:
                                - 1.1
                          width: 0.8
                          height: 0.2
-                         theta: 0.0
-                         s: 0.99
-
-        -   shape: StarTree
-            stars:
-                    -    type: Workspace
-                         center:
-                               - 3.5
-                               - 2.0
-                         width: 7.0
-                         height: 4.0
                          theta: 0.0
                          s: 0.99
 

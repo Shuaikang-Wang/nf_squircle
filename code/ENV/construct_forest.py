@@ -47,22 +47,26 @@ class ForestWorld(object):
 
 
 class ConstructForest:
-    def __init__(self, lines, extension=0.2):
-        self.lines = lines
-        self.extension = extension
+    def __init__(self, squircle_data):
+        self.squircle_data = squircle_data
         self.squircles = []
         self.forest_world = ForestWorld([], [])
-        self.ws_root = Squircle('workspace', np.array([3.5, 2.0]), 7.0, 4.0)
+        self.ws_root = Squircle('workspace', np.array([3.5, 2.0]), 7.0, 4.0, 0.0, 0.999)
         self.semantic_world = SemanticWorld()
         self.forest_root = None
         self.all_obs_graph = []
         self.all_ws_graph = []
 
-        self.convert_lines_to_squircles()
+        self.convert_squircle_data()
         self.construct_semantic_world()
         self.construct_forest_world()
         self.create_forest()
         self.node_pos = {self.forest_root: (0, 0)}
+
+    def convert_squircle_data(self):
+        for squircle_i in self.squircle_data:
+            squircle = Squircle('obstacle', np.array(squircle_i[0]), squircle_i[1], squircle_i[2], squircle_i[3], squircle_i[4])
+            self.squircles.append(squircle)
 
     @staticmethod
     def line_perpendicular(line1, line2, threshold=0.01):
@@ -166,115 +170,10 @@ class ConstructForest:
         else:
             return False
 
-    def shorten_squircles(self, all_squircle_group):
-        for squ_group in all_squircle_group:
-            if len(squ_group) == 1:
-                continue
-            else:
-                for i, squircle_i in enumerate(squ_group):
-                    squircle_j = squ_group[(i + 1) % len(squ_group)]
-                    line_i = squircle_i.ori_line
-                    line_j = squircle_j.ori_line
-                    vector_i = squircle_i.vector
-                    vector_j = squircle_j.vector
-                    ray_i = [[(line_i[0][0] + line_i[1][0]) / 2, (line_i[0][1] + line_i[1][1]) / 2],
-                             vector_i]
-                    ray_j = [[(line_j[0][0] + line_j[1][0]) / 2, (line_j[0][1] + line_j[1][1]) / 2],
-                             vector_j]
-                    if self.intersect_ray(ray_i, ray_j):
-                        insec_point = self.line_intersection(line_i, line_j)
-                        dist_i_1 = (insec_point[0] - line_i[0][0])**2 + (insec_point[1] - line_i[0][1])**2
-                        dist_i_2 = (insec_point[0] - line_i[1][0])**2 + (insec_point[1] - line_i[1][1])**2
-
-                        dx = line_i[0][0] - line_i[1][0]
-                        dy = line_i[0][1] - line_i[1][1]
-                        length = math.sqrt(dx ** 2 + dy ** 2) + 1e-5
-
-                        # print("line_i", line_i[0])
-                        shorten_start_point = (
-                            line_i[0][0] - (dx / length) * squircle_i.extension,
-                            line_i[0][1] - (dy / length) * squircle_i.extension
-                        )
-                        shorten_end_point = (
-                            line_i[1][0] + (dx / length) * squircle_i.extension,
-                            line_i[1][1] + (dy / length) * squircle_i.extension
-                        )
-                        # print("new line_i", shorten_start_point)
-
-                        if dist_i_1 < dist_i_2:
-                            line_i[0] = np.array(shorten_start_point)
-                        else:
-                            line_i[1] = np.array(shorten_end_point)
-
-                        dist_j_1 = (insec_point[0] - line_j[0][0]) ** 2 + (insec_point[1] - line_j[0][1]) ** 2
-                        dist_j_2 = (insec_point[0] - line_j[1][0]) ** 2 + (insec_point[1] - line_j[1][1]) ** 2
-
-                        dx = line_j[0][0] - line_j[1][0]
-                        dy = line_j[0][1] - line_j[1][1]
-                        length = math.sqrt(dx ** 2 + dy ** 2) + 1e-5
-
-                        shorten_start_point = (
-                            line_j[0][0] - (dx / length) * squircle_i.extension,
-                            line_j[0][1] - (dy / length) * squircle_i.extension
-                        )
-                        shorten_end_point = (
-                            line_j[1][0] + (dx / length) * squircle_i.extension,
-                            line_j[1][1] + (dy / length) * squircle_i.extension
-                        )
-
-                        if dist_j_1 < dist_j_2:
-                            line_j[0] = shorten_start_point
-                        else:
-                            line_j[1] = shorten_end_point
-
-                        line_start_point_i = line_i[0]
-                        line_end_point_i = line_i[1]
-                        extended_squircle_i = LineToSquircle(line_start_point_i, line_end_point_i, vector_i,
-                                                             squircle_i.extension)
-                        center_i, width_i, height_i, theta_i = extended_squircle_i.line_to_squircle()
-
-                        squircle_i.center = center_i
-                        squircle_i.width = width_i
-                        squircle_i.height = height_i
-                        outer_line = [extended_squircle_i.extended_side_start_point, 
-                                      extended_squircle_i.extended_side_end_point]
-                        squircle_i.outer_line = outer_line
-
-                        line_start_point_j = line_j[0]
-                        line_end_point_j = line_j[1]
-                        extended_squircle_j = LineToSquircle(line_start_point_j, line_end_point_j, vector_j,
-                                                             squircle_j.extension)
-                        center_j, width_j, height_j, theta_j = extended_squircle_j.line_to_squircle()
-                        squircle_j.center = center_j
-                        squircle_j.width = width_j
-                        squircle_j.height = height_j
-                        outer_line = [extended_squircle_j.extended_side_start_point, 
-                                      extended_squircle_j.extended_side_end_point]
-                        squircle_j.outer_line = outer_line
-        return all_squircle_group
-
     def construct_semantic_world(self):
-        # print("start merge squircles")
         all_squircle_group = self.class_squircle_in_group()
-        all_squircle_group = self.shorten_squircles(all_squircle_group)
-        # print("merged groups", len(all_squircle_group))
-        # sum_list = [len(group) for group in all_squircle_group]
-        # num = sum(sum_list)
-        # print("total squircle:",num)
-        # print("start construct forest")
-        # print(all_squircle_group)
         for group_i in all_squircle_group:
             # print("111group_i", group_i)
-            if_loop, if_ws = self.check_closed_loop_in_group(group_i)
-            if if_loop:
-                if if_ws:
-                    print("Merge Ws Squircle Group to Polygon")
-                else:
-                    print("Merge Obs Squircle Group to Polygon")
-                polygon = self.merge_group_to_polygon(group_i, if_ws)
-                print("polygon", polygon)
-                group_i = self.polygon_partition(polygon)
-                print("group_i", group_i)
 
             temp_group = group_i
             # print("111temp group", temp_group)
@@ -287,20 +186,18 @@ class ConstructForest:
                     del temp_group[j]
                     is_ws = 1
                     break
-            # print("222temp group", temp_group)
             if is_ws:
                 iteration = 0
                 while len(temp_group) > 0:
                     if iteration == 10:
                         ws = ws + temp_group
                         break
-                    print("===========test================", iteration)
                     iteration += 1
                     if len(temp_group) == 1:
                         ws.append(temp_group[0])
                         del temp_group[0]
                     for k, temp_squircle_k in enumerate(temp_group):
-                        if self.check_squircle_intersect(ws[-1], temp_squircle_k, threshold=0.01):
+                        if self.check_squircle_intersect(ws[-1], temp_squircle_k, threshold=0.1):
                             ws.append(temp_squircle_k)
                             del temp_group[k]
                 self.semantic_world.workspace.append(ws)
@@ -310,7 +207,7 @@ class ConstructForest:
                 for m, squircle_m in enumerate(temp_group[:-1]):
                     for n, squircle_n in enumerate(temp_group[m + 1:]):
                         n = n + m + 1
-                        if self.check_squircle_intersect(squircle_m, squircle_n, threshold=0.01):
+                        if self.check_squircle_intersect(squircle_m, squircle_n, threshold=0.1):
                             connect_num[m] += 1
                             connect_num[n] += 1
                 root_index = 0
@@ -324,7 +221,6 @@ class ConstructForest:
                     if iteration == 10:
                         obs = obs + temp_group
                         break
-                    print("===========test================", iteration)
                     iteration += 1
                     if len(temp_group) == 1:
                         obs.append(temp_group[0])
@@ -335,52 +231,8 @@ class ConstructForest:
                             del temp_group[t]
                 self.semantic_world.obstacles.append(obs)
 
-        # print("ws num: ", len(self.semantic_world.workspace))
-        # print("obs num: ", len(self.semantic_world.obstacles))
 
-        """
-        for squircle_i in self.squircles:
-            # print("squircle_i.center", squircle_i.center)
-            # print("squircle_i.width", squircle_i.width)
-            # print("squircle_i.height", squircle_i.height)
-            # print("squircle_i.theta", squircle_i.theta)
-            if self.check_squircle_ws_intersection(squircle_i):
-                # print("===========squircle_i intersection with workspace===========")
-                ws = [self.ws_root, squircle_i]
-                self.semantic_world.workspace.append(ws)
-            else:
-                flag = 0
-                if len(self.semantic_world.workspace) > 0:
-                    for ws_index, ws_group in enumerate(self.semantic_world.workspace):
-                        for ws_j in ws_group[1:]:
-                            if self.check_squircle_intersect(ws_j, squircle_i):
-                                self.semantic_world.workspace = self.semantic_world.workspace[:ws_index] + \
-                                                                self.semantic_world.workspace[ws_index + 1:]
-                                ws_group.append(squircle_i)
-                                self.semantic_world.workspace.append(ws_group)
-                                flag = 1
-                                break
-                        if flag == 1:
-                            break
-
-                if len(self.semantic_world.obstacles) > 0:
-                    for obs_index, obs_group in enumerate(self.semantic_world.obstacles):
-                        for obs_j in obs_group:
-                            if self.check_squircle_intersect(obs_j, squircle_i):
-                                self.semantic_world.obstacles = self.semantic_world.obstacles[:obs_index] + \
-                                                                self.semantic_world.obstacles[obs_index + 1:]
-                                obs_group.append(squircle_i)
-                                self.semantic_world.obstacles.append(obs_group)
-                                flag = 1
-                                break
-                        if flag == 1:
-                            break
-                if flag == 0:
-                    obs = [squircle_i]
-                    self.semantic_world.obstacles.append(obs)
-        """
-
-    def extend_ws_for_vis(self, polygon):
+    def extend_ws_for_vis(self, polygon, threshold=0.1):
         ws_left = self.ws_root.center[0] - self.ws_root.width / 2
         ws_right = self.ws_root.center[0] + self.ws_root.width / 2
         ws_bottom = self.ws_root.center[1] - self.ws_root.height / 2
@@ -388,7 +240,6 @@ class ConstructForest:
         # print(abs(line_start[0] - line_end[0]))
         extended_polygon = []
         extend_dis = 40.0
-        threshold = 0.02 
         for vertex in polygon:
             if vertex[1] < ws_bottom + threshold:
                 new_vertex = (vertex[0], vertex[1] - extend_dis)
@@ -414,41 +265,54 @@ class ConstructForest:
                 #     print(ws_group[2].center, ws_group[2].width, ws_group[2].height)
                 all_ws_group = ws_group[1:]
 
-                ws_polygon_0 = [[all_ws_group[0].center[0] - all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] - all_ws_group[0].height / 2],
-                                [all_ws_group[0].center[0] - all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] + all_ws_group[0].height / 2],
-                                [all_ws_group[0].center[0] + all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] + all_ws_group[0].height / 2],
-                                [all_ws_group[0].center[0] + all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] - all_ws_group[0].height / 2]
+                center = all_ws_group[0].center
+                width = all_ws_group[0].width
+                height = all_ws_group[0].height
+                theta = all_ws_group[0].theta
+                ws_polygon_0 = [[(- width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                 (- width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]],
+                                [(- width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                 (- width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                [(width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                 (width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                [(width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                 (width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]]
                                 ]
-                new_ws_polygon_0 = self.extend_ws_for_vis(ws_polygon_0)
+
+                new_ws_polygon_0 = self.extend_ws_for_vis(ws_polygon_0, threshold=inflated_size)
                 all_rects.append(new_ws_polygon_0)
 
                 for ws_i in all_ws_group[1:]:
-                    ws_polygon_i = [[ws_i.center[0] - ws_i.width / 2,
-                                     ws_i.center[1] - ws_i.height / 2],
-                                    [ws_i.center[0] - ws_i.width / 2,
-                                     ws_i.center[1] + ws_i.height / 2],
-                                    [ws_i.center[0] + ws_i.width / 2,
-                                     ws_i.center[1] + ws_i.height / 2],
-                                    [ws_i.center[0] + ws_i.width / 2,
-                                     ws_i.center[1] - ws_i.height / 2]
+                    center = ws_i.center
+                    width = ws_i.width
+                    height = ws_i.height
+                    theta = ws_i.theta
+                    ws_polygon_i = [[(- width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                    (- width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]],
+                                    [(- width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                    (- width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                    [(width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                    (width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                    [(width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                    (width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]]
                                     ]
                     all_rects.append(ws_polygon_i)
 
         for obs_group in self.semantic_world.obstacles:
             for obs_i in obs_group:
-                obs_polygon_i = [[obs_i.center[0] - obs_i.width / 2,
-                                  obs_i.center[1] - obs_i.height / 2],
-                                 [obs_i.center[0] - obs_i.width / 2,
-                                  obs_i.center[1] + obs_i.height / 2],
-                                 [obs_i.center[0] + obs_i.width / 2,
-                                  obs_i.center[1] + obs_i.height / 2],
-                                 [obs_i.center[0] + obs_i.width / 2,
-                                  obs_i.center[1] - obs_i.height / 2]
-                                 ]
+                center = obs_i.center
+                width = obs_i.width
+                height = obs_i.height
+                theta = obs_i.theta
+                obs_polygon_i = [[(- width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                (- width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]],
+                                [(- width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                (- width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                [(width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                (width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                [(width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                (width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]]
+                                ]
                 all_rects.append(obs_polygon_i)
 
         extend_rects = []
@@ -458,6 +322,8 @@ class ConstructForest:
             b = Building(np.array(vertices_list), inflated_size)
             extend_rects.append(b.expansion_anchors)
 
+        if len(extend_rects) == 0:
+            return []
         union_polygon = Polygon(extend_rects[0])
         for rect_i in extend_rects[1:]:
             rect_polygon_i = Polygon(rect_i)
@@ -485,15 +351,18 @@ class ConstructForest:
                 # if len(ws_group) == 3:
                 #     print(ws_group[2].center, ws_group[2].width, ws_group[2].height)
                 all_ws_group = ws_group[1:]
-
-                ws_polygon_0 = [[all_ws_group[0].center[0] - all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] - all_ws_group[0].height / 2],
-                                [all_ws_group[0].center[0] - all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] + all_ws_group[0].height / 2],
-                                [all_ws_group[0].center[0] + all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] + all_ws_group[0].height / 2],
-                                [all_ws_group[0].center[0] + all_ws_group[0].width / 2,
-                                 all_ws_group[0].center[1] - all_ws_group[0].height / 2]
+                center = all_ws_group[0].center
+                width = all_ws_group[0].width
+                height = all_ws_group[0].height
+                theta = all_ws_group[0].theta
+                ws_polygon_0 = [[(- width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                 (- width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]],
+                                [(- width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                 (- width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                [(width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],
+                                 (width / 2) * np.sin(theta) + (height / 2) * np.cos(theta) + center[1]],
+                                [(width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
+                                 (width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]]
                                 ]
 
                 if len(all_ws_group) == 1:
@@ -707,7 +576,7 @@ class ConstructForest:
                     obs.append(temp_group[0])
                     del temp_group[0]
                 for t, temp_squircle_t in enumerate(temp_group):
-                    if self.check_squircle_intersect(obs[-1], temp_squircle_t, threshold=0.01):
+                    if self.check_squircle_intersect(obs[-1], temp_squircle_t, threshold=0.1):
                         obs.append(temp_squircle_t)
                         del temp_group[t]
             group = obs
@@ -724,7 +593,7 @@ class ConstructForest:
                 for n, squircle_n in enumerate(temp_group[m + 1:]):
                     n = n + m + 1
                     # print("n", n)
-                    if self.check_squircle_intersect(squircle_m, squircle_n, threshold=0.01):
+                    if self.check_squircle_intersect(squircle_m, squircle_n, threshold=0.1):
                         # print("mn", m, n)
                         # print("squircle_m", squircle_m.center, squircle_m.width, squircle_m.height)
                         # print("squircle_n", squircle_n.center, squircle_n.width, squircle_n.height)
@@ -743,7 +612,7 @@ class ConstructForest:
                     obs.append(temp_group[0])
                     del temp_group[0]
                 for t, temp_squircle_t in enumerate(temp_group):
-                    if self.check_squircle_intersect(obs[-1], temp_squircle_t, threshold=0.01):
+                    if self.check_squircle_intersect(obs[-1], temp_squircle_t, threshold=0.1):
                         obs.append(temp_squircle_t)
                         del temp_group[t]
             group = obs
@@ -911,27 +780,6 @@ class ConstructForest:
             merged_groups.append(unique_merged_groups_i)
         return merged_groups
 
-    def convert_lines_to_squircles(self):
-        for line_i in self.lines:
-            points = line_i[1]
-            line_start_point = points[0]
-            line_end_point = points[1]
-            # print("initial lines", line_start_point, line_end_point)
-            line_start_point, line_end_point = self.extend_line_to_ws(line_start_point, line_end_point, self.extension)
-            # print("new lines", line_start_point, line_end_point)
-            vector = [line_i[2][0], line_i[2][1]]
-            extended_squircle = LineToSquircle(line_start_point, line_end_point, vector, self.extension)
-            center, width, height, theta = extended_squircle.line_to_squircle()
-            # print("line:", line_start_point, line_end_point, vector)
-            # print("line to squircle:", center, width, height, theta)
-            squircle_i = Squircle('obstacle', center, width, height, theta)
-            outer_line = [extended_squircle.extended_side_start_point, extended_squircle.extended_side_end_point]
-            squircle_i.outer_line = outer_line
-            squircle_i.ori_line = [line_start_point, line_end_point]
-            squircle_i.vector = vector
-            squircle_i.extension = self.extension
-            self.squircles.append(squircle_i)
-
     def extend_line_to_ws(self, line_start, line_end, extension):
         ws_left = self.ws_root.center[0] - self.ws_root.width / 2
         ws_right = self.ws_root.center[0] + self.ws_root.width / 2
@@ -988,7 +836,7 @@ class ConstructForest:
         return line_start, line_end
 
     @staticmethod
-    def check_squircle_intersect(squircle_1, squircle_2, threshold=0.01):
+    def check_squircle_intersect(squircle_1, squircle_2, threshold=0.1):
         center_x_1 = squircle_1.center[0]
         center_y_1 = squircle_1.center[1]
         theta_1 = (squircle_1.theta % (2 * math.pi) + 2 * math.pi) % (2 * math.pi)
@@ -1018,7 +866,7 @@ class ConstructForest:
         else:
             return False
 
-    def check_squircle_ws_intersection(self, squircle, threshold=-0.02):
+    def check_squircle_ws_intersection(self, squircle, threshold=-0.1):
         ws = self.ws_root
 
         ws_center_x = ws.center[0]

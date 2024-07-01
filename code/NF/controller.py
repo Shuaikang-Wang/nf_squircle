@@ -22,53 +22,30 @@ class NFController(object):
     def nf(self):
         return NavigationFunction(self.world, self.goal_pose, self.nf_lambda, self.nf_mu)
 
-    def vector_follow_controller(self, tau =1.0, k_v=0.8, k_omega_1=1.2, k_omega_2=0.5):
+    def vector_follow_controller(self, tau =1.0, k_v=0.8, k_omega_1=1.0, k_omega_2=0.5):
         theta_dis = (self.current_pose[2] - self.goal_pose[2] + np.pi) % (2 * np.pi) - np.pi
         if abs(theta_dis) > np.pi / 2:
             k_v = 0.1
-            k_omega_1 = 2.5
-        gradient = self.compute_mapped_gradient(np.array(self.current_pose[0: 2]))
-        f_x, f_y = - gradient[0][0], - gradient[1][0]
-        partial_x_x, partial_x_y, partial_y_x, partial_y_y = - self.compute_partial_list(self.current_pose[0:2])
-        # potential_point = self.global_nf().compute_potential_at_point(self.start_pose[0:2])
-        # velocity = k_v * np.sqrt(tau * potential_point)
-        # initial_pose = np.array([0.5, 0.45, 0])
-        # target_pose = np.array([0.65,2.1,1.57])
-        # mid_pose = np.array([1.2279163338411268,0.5914926646486217,0.659026469712762])
+            k_omega_1 = 2.0
         velocity = k_v * np.tanh(tau * distance(self.current_pose[0:2], self.goal_pose[0:2]))
-        # alpha = (self.start_pose[2] + np.pi) % (2 * np.pi) - np.pi
-        # gamma = (np.arctan2(f_y, f_x) + np.pi) % (2 * np.pi) - np.pi
-        # theta_diff = alpha - gamma
-        theta_diff = (self.current_pose[2] - np.arctan2(f_y, f_x) + np.pi) % (2 * np.pi) - np.pi
-        # if distance(self.start_pose[0:2], self.global_start[0:2]) < 0.01:
-        #     slow_factor = (abs(np.tanh(-5.0 * distance(self.current_pose, self.goal_pose))) + 0.1)
-        # else:
-        #     slow_factor = (abs(np.tanh(-5.0 * distance(self.current_pose, self.goal_pose))) + 0.1) * \
-        #                   (abs(np.tanh(-5.0 * distance(self.current_pose, self.start_pose))) + 0.1)
-        # slow_factor = (abs(np.tanh(-1.0 * distance(self.current_pose, self.goal_pose))) + 0.1) * \
-        #               (abs(np.tanh(-1.0 * distance(self.current_pose, self.start_pose))) + 0.1)
-        # print("current_pose, start_pose, goal_pose:", self.current_pose, self.start_pose, self.goal_pose)
-        # velocity = k_v * (np.tanh(tau * distance(self.current_pose[0:2], self.global_start[0:2]))
-        #                   + np.tanh(tau * distance(self.current_pose[0:2], self.global_goal[0:2]))
-        #                   - np.tanh(tau * distance(self.global_start[0:2], self.global_goal[0:2]))) * slow_factor
-        # velocity = k_v * slow_factor
-        theta_deri = (velocity / np.linalg.norm(gradient) ** 2) * \
-                     (f_x * (partial_y_y * np.sin(self.current_pose[2]) + partial_y_x * np.cos(self.current_pose[2])) -
-                      f_y * (partial_x_y * np.sin(self.current_pose[2]) + partial_x_x * np.cos(self.current_pose[2])))
-        # if theta_deri > np.pi / 2:
-        #     theta_deri = np.pi / 2
-        # if theta_deri < -np.pi / 2:
-        #     theta_deri = -np.pi / 2
-        yaw_velocity = - k_omega_1 * theta_diff + k_omega_2 * theta_deri
+        
+        gradient = self.compute_mapped_gradient(np.array(self.current_pose[0: 2]))
+        if np.linalg.norm(gradient) > 0:
+            f_x, f_y = - gradient[0][0], - gradient[1][0]
+            partial_x_x, partial_x_y, partial_y_x, partial_y_y = - self.compute_partial_list(self.current_pose[0:2])
+            
+            theta_diff = (self.current_pose[2] - np.arctan2(f_y, f_x) + np.pi) % (2 * np.pi) - np.pi
+            theta_deri = (velocity / (np.linalg.norm(gradient) ** 2)) * \
+                        (f_x * (partial_y_y * np.sin(self.current_pose[2]) + partial_y_x * np.cos(self.current_pose[2])) -
+                        f_y * (partial_x_y * np.sin(self.current_pose[2]) + partial_x_x * np.cos(self.current_pose[2])))
+            yaw_velocity = - k_omega_1 * theta_diff + k_omega_2 * theta_deri
+        else:
+            _, yaw_velocity = self.ego_controller(self.current_pose, self.goal_pose)
+            yaw_velocity = yaw_velocity * k_omega_1
         # if yaw_velocity > np.pi / 2:
         #     yaw_velocity = np.pi / 2
         # if yaw_velocity < -np.pi / 2:
         #     yaw_velocity = -np.pi / 2
-        # print("alpha", alpha)
-        # print("gamma", gamma)
-        # print("velocity, yaw_velocity:", velocity, yaw_velocity)
-        # print("theta_diff, theta_deri:", theta_diff, theta_deri)
-        # print("\n")
         return velocity, yaw_velocity
 
     def gradient_controller(self):
@@ -157,3 +134,21 @@ class NFController(object):
             grad_x.append(normalized_grad[0][0])
             grad_y.append(normalized_grad[1][0])
         return grad_x, grad_y
+
+
+    def cartesian_to_egocentric(self, start_pose, goal_pose):
+        rho = ((start_pose[0] - goal_pose[0]) ** 2 + (start_pose[1] - goal_pose[1]) ** 2) ** 0.5
+        if rho == 0:
+            alpha = start_pose[2]
+        else:
+            alpha = np.arctan2(goal_pose[1] - start_pose[1], goal_pose[0] - start_pose[0])
+        phi = (goal_pose[2] - alpha + np.pi) % (2 * np.pi) - np.pi
+        delta = (start_pose[2] - alpha + np.pi) % (2 * np.pi) - np.pi
+        return rho, phi, delta
+
+    def ego_controller(self, start_pose, goal_pose, k_1=1.0, k_2=0.8):
+        rho, theta, delta = self.cartesian_to_egocentric(start_pose, goal_pose)
+        velocity = 0.1
+        yaw_velocity = (- velocity / rho) * (k_2 * (delta - np.arctan(- k_2 * theta)
+                                                    ) + (1 + k_1 / (1 + (k_1 * theta) ** 2)) * np.sin(delta))
+        return velocity, yaw_velocity

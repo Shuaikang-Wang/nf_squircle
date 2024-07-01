@@ -53,7 +53,7 @@ class NavigationFunction(object):
         goal_atr_potential = distance(h, self.transformaton(self.goal[0:2])) ** 2
         return self.mu * goal_atr_potential / (goal_atr_potential + obs_rep_potential ** (1 / k))
 
-    def compute_potential_at_point(self, q: np.ndarray, threshold = 0.1) -> float:
+    def compute_potential_at_point(self, q: np.ndarray, threshold = 0.0) -> float:
         # potential at star world
         if self.world.check_point_in_free_space(q, threshold = 0.0): #threshold = 0.101 0.02
             point_in_pw = self.transformaton(q)

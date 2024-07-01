@@ -19,7 +19,8 @@ class SklearnCluster(object):
         self.labels = None
 
     def cluster(self, points):
-        db = DBSCAN(eps=self.eps, min_samples=self.min_samples).fit(points)
+        points_xy = points[:, :2]
+        db = DBSCAN(eps=self.eps, min_samples=self.min_samples).fit(points_xy)
         self.labels = db.labels_
         self.unique_labels = set(self.labels)
         cluster_points = []
@@ -27,8 +28,12 @@ class SklearnCluster(object):
             if k == -1:
                 continue
             class_member_mask = (self.labels == k)
-            xy = points[class_member_mask]
-            cluster_points.append(xy)
+            point = points[class_member_mask]
+            if len(point) < 10:
+
+                continue
+            cluster_points.append(point)
+        # print("test cluster_points", cluster_points)
         return cluster_points
 
     def find_nearest_path_with_matrix(self, dist_matrix, start_index):
@@ -52,7 +57,7 @@ class SklearnCluster(object):
 
         return total_distance, path
 
-    def find_index_with_max_total_distance(self, dist_matrix):
+    def find_index_with_min_total_distance(self, dist_matrix):
         min_total_distance = float('inf')
         best_start_index = -1
         best_path = []
@@ -78,10 +83,10 @@ class SklearnCluster(object):
                 continue
             else:
                 # print("cluster_i", cluster_i)
-                dist_matrix = distance_matrix(cluster_i, cluster_i)
+                dist_matrix = distance_matrix(cluster_i[:, :2], cluster_i[:, :2])
                 for i in range(len(dist_matrix)):
                     dist_matrix[i, i] = np.inf
-                _, best_path = self.find_index_with_max_total_distance(dist_matrix)
+                _, best_path = self.find_index_with_min_total_distance(dist_matrix)
                 # print("best_path", best_path)
                 sorted_cluster_i = cluster_i[best_path]
                 # sorted_cluster_i = cluster_i
@@ -90,10 +95,8 @@ class SklearnCluster(object):
         return sorted_cluster_points
 
     def draw_results(self, ax, cluster_points):
-        for k, col in zip(self.unique_labels, COLORS):
-            if k == -1:
-                continue
-            xy = cluster_points[k]
+        for points, col in zip(cluster_points, COLORS):
+            xy = points
             ax.plot(xy[0, 0], xy[0, 1], 'o', markerfacecolor='b', markeredgecolor='b', markersize=6,
                     zorder=35)
             ax.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col), markeredgecolor=tuple(col), markersize=4, zorder=35)
