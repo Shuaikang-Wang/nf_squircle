@@ -30,9 +30,9 @@ ax2 = fig.add_subplot(122)
 
 start_pose = np.array([3.2, 0.4, -np.pi])  # 0.5, 0.5, 1.57
 # start_pose = np.array([6.3, 1.5, -np.pi / 2])
-p_1 = [0.5, 0.5, -np.pi / 2]
-p_2 = [2.4, 3.5, -0.2]
-d_1 = [0.8, 3.5, -np.pi]
+p_1 = [0.4, 0.5, -np.pi / 2]
+p_2 = [2.2, 3.5, -0.2]
+d_1 = [0.9, 3.5, -np.pi]
 d_2 = [6.3, 0.5, -np.pi / 2]
 d_3 = [6.4, 3.0, -np.pi / 2]
 u_1 = [4.6, 0.5, -np.pi]
@@ -112,7 +112,7 @@ for frame in range(0, max_step):
         squircle_data = sq_esti.fit_squircle_group(forest_world.all_cluster_segments)
         forest_world.squircle_data = squircle_data
         construct_forest = ConstructForest(forest_world.squircle_data)
-        all_polygon_list = construct_forest.get_vis_rect_data(inflated_size=0.18)
+        all_polygon_list = construct_forest.get_vis_rect_data(inflated_size=0.28)
         # print("all_polygon_list", all_polygon_list)
         navigation_map.construct_planner_rect_multi_goal(robot.pose, goal_pose_list[current_goal_index:], all_polygon_list)
         nm_path = navigation_map.path
@@ -121,12 +121,12 @@ for frame in range(0, max_step):
         ax2.clear()
         plot_data(ax1, robot, forest_world)
         plot_trajectory(ax1, [path_x, path_y])
-
+ 
         plot_cluster(ax2, sk_clu, forest_world)
         plot_init_data(ax2, robot, forest_world)
         plot_cluster_segment(ax2, forest_world)
         plot_fitting_squircle(ax2, forest_world)
-        # plot_polygon_list(ax2, all_polygon_list)
+        plot_polygon_list(ax2, all_polygon_list)
         plot_nm_path(ax2, nm_path)
 
         file_name = f"{current_frame}.png"

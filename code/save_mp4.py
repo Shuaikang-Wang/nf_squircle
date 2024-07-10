@@ -6,7 +6,7 @@ import datetime
 from moviepy.editor import ImageSequenceClip
 
 # 设置生成的视频文件名和路径
-snap_path = "RESULT/results/"
+snap_path = "DATA/figure_data/snap_2024_07_05/"
 
 
 name_path = "RESULT"

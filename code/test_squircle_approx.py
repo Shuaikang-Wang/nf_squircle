@@ -26,8 +26,8 @@ import datetime
 start_pose = np.array([3.5, 0.5, 0.0])  # 0.5, 0.5, 1.57
 goal_pose = np.array([6.0, 1.0, np.pi / 2])
 
-real_world_config = './CONFIG/squircel_world.yaml'
-init_world_config = './CONFIG/squircel_world.yaml'
+real_world_config = '../CONFIG/squircel_world.yaml'
+init_world_config = '../CONFIG/squircel_world.yaml'
 robot_config = './ROBOT/robot_config.yaml'
 
 real_world = World(real_world_config)

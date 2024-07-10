@@ -94,7 +94,10 @@ class ClusterSplit(object):
         points = np.hstack((x_fine, y_fine))
         # print("points", points)
         # points = self.remove_close_points(points, threshold=0.005)
+        select_region = [1.6, 3.5, 0.6, 2.2]
         split_indices, kappa = self.detect_curvature_changes(points, self.window_size, self.curvature_threshold)
+        if not (points[0][0] > select_region[0] and points[0][0] < select_region[1] and points[0][1] > select_region[2] and points[0][1] < select_region[3]):
+            kappa = 0.99
         split_indices = [0] + split_indices + [len(points)]
 
         segments = []

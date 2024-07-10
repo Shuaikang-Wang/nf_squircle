@@ -465,7 +465,7 @@ class SphereToPoint(object):
         if dist_to_ws_center > ws_radius - margin:
             weight = bound
         else:
-            weight = 1 / (ws_radius - dist_to_ws_center)
+            weight = ws_radius / (ws_radius - dist_to_ws_center)
         return (q - center) * weight + center
     
     def compute_T_q(self, q: np.ndarray) -> np.ndarray:

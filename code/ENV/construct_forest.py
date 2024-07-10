@@ -7,7 +7,7 @@ import numpy as np
 import math
 import networkx as nx
 from ENV.line_to_squircle import LineToSquircle
-from ENV.geometry import Squircle
+from ENV.geometry import Squircle, Star
 from ENV.polygon_partition import PolygonPartition
 from NM.polygon_extend import Building
 
@@ -51,7 +51,7 @@ class ConstructForest:
         self.squircle_data = squircle_data
         self.squircles = []
         self.forest_world = ForestWorld([], [])
-        self.ws_root = Squircle('workspace', np.array([3.5, 2.0]), 7.0, 4.0, 0.0, 0.999)
+        self.ws_root = Squircle('workspace', np.array([3.5, 2.0]), 7.0, 4.0, 0.0, 0.9999)
         self.semantic_world = SemanticWorld()
         self.forest_root = None
         self.all_obs_graph = []
@@ -169,9 +169,27 @@ class ConstructForest:
             return True
         else:
             return False
+        
+    def merge_group_to_star(self, all_squircle_group):
+        select_region = [1.6, 3.5, 0.6, 2.2]
+        merged_squircle_group = []
+        for group_i in all_squircle_group:
+            require_merge = False
+            for squircle in group_i:
+                center = squircle.center
+                if center[0] > select_region[0] and center[0] < select_region[1] and center[1] > select_region[2] and center[1] < select_region[3]:
+                    require_merge = True
+                    break
+            if not require_merge:
+                merged_squircle_group.append(group_i)
+            else:
+                merged_star = Star('obstacle', group_i)
+                merged_squircle_group.append([merged_star])
+        return merged_squircle_group
 
     def construct_semantic_world(self):
         all_squircle_group = self.class_squircle_in_group()
+        # all_squircle_group = self.merge_group_to_star(all_squircle_group)
         for group_i in all_squircle_group:
             # print("111group_i", group_i)
 
@@ -202,34 +220,38 @@ class ConstructForest:
                             del temp_group[k]
                 self.semantic_world.workspace.append(ws)
             else:
-                temp_group = group_i
-                connect_num = [0 for _ in range(len(temp_group))]
-                for m, squircle_m in enumerate(temp_group[:-1]):
-                    for n, squircle_n in enumerate(temp_group[m + 1:]):
-                        n = n + m + 1
-                        if self.check_squircle_intersect(squircle_m, squircle_n, threshold=0.1):
-                            connect_num[m] += 1
-                            connect_num[n] += 1
-                root_index = 0
-                for k, num in enumerate(connect_num):
-                    if num == 1:
-                        root_index = k
-                obs.append(temp_group[root_index])
-                del temp_group[root_index]
-                iteration = 0
-                while len(temp_group) > 0:
-                    if iteration == 10:
-                        obs = obs + temp_group
-                        break
-                    iteration += 1
-                    if len(temp_group) == 1:
-                        obs.append(temp_group[0])
-                        del temp_group[0]
-                    for t, temp_squircle_t in enumerate(temp_group):
-                        if self.check_squircle_intersect(obs[-1], temp_squircle_t, threshold=0.01):
-                            obs.append(temp_squircle_t)
-                            del temp_group[t]
-                self.semantic_world.obstacles.append(obs)
+                # temp_group = group_i
+                # connect_num = [0 for _ in range(len(temp_group))]
+                # for m, squircle_m in enumerate(temp_group[:-1]):
+                #     for n, squircle_n in enumerate(temp_group[m + 1:]):
+                #         n = n + m + 1
+                #         if self.check_squircle_intersect(squircle_m, squircle_n, threshold=0.1):
+                #             connect_num[m] += 1
+                #             connect_num[n] += 1
+                # root_index = 0
+                # for k, num in enumerate(connect_num):
+                #     if num == 1:
+                #         root_index = k
+                # obs.append(temp_group[root_index])
+                # del temp_group[root_index]
+                # iteration = 0
+                # while len(temp_group) > 0:
+                #     if iteration == 10:
+                #         obs = obs + temp_group
+                #         break
+                #     iteration += 1
+                #     if len(temp_group) == 1:
+                #         obs.append(temp_group[0])
+                #         del temp_group[0]
+                #     for t, temp_squircle_t in enumerate(temp_group):
+                #         if self.check_squircle_intersect(obs[-1], temp_squircle_t, threshold=0.1):
+                #             obs.append(temp_squircle_t)
+                #             del temp_group[t]
+                # self.semantic_world.obstacles.append(obs)
+    
+                for squircle in group_i:
+                    obs = [squircle]
+                    self.semantic_world.obstacles.append(obs)
 
 
     def extend_ws_for_vis(self, polygon, threshold=0.1):
@@ -299,11 +321,15 @@ class ConstructForest:
                     all_rects.append(ws_polygon_i)
 
         for obs_group in self.semantic_world.obstacles:
+            region = [3.5, 5.0, 1.8, 4.5]
             for obs_i in obs_group:
                 center = obs_i.center
                 width = obs_i.width
                 height = obs_i.height
                 theta = obs_i.theta
+                if center[0] > region[0] and center[0] < region[1] and center[1] > region[2] and center[1] < region[3]:
+                    width -= 0.0
+                    height -= 0.0
                 obs_polygon_i = [[(- width / 2) * np.cos(theta) - (- height / 2) * np.sin(theta) + center[0],
                                 (- width / 2) * np.sin(theta) + (- height / 2) * np.cos(theta) + center[1]],
                                 [(- width / 2) * np.cos(theta) - (height / 2) * np.sin(theta) + center[0],

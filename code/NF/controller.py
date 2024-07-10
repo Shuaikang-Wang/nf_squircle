@@ -24,9 +24,9 @@ class NFController(object):
 
     def vector_follow_controller(self, tau =1.0, k_v=0.8, k_omega_1=1.0, k_omega_2=0.5):
         theta_dis = (self.current_pose[2] - self.goal_pose[2] + np.pi) % (2 * np.pi) - np.pi
-        if abs(theta_dis) > np.pi / 2:
-            k_v = 0.1
-            k_omega_1 = 2.0
+        # if abs(theta_dis) > np.pi / 2:
+        #     k_v = 0.1
+        #     k_omega_1 = 2.0
         velocity = k_v * np.tanh(tau * distance(self.current_pose[0:2], self.goal_pose[0:2]))
         
         gradient = self.compute_mapped_gradient(np.array(self.current_pose[0: 2]))
@@ -39,9 +39,11 @@ class NFController(object):
                         (f_x * (partial_y_y * np.sin(self.current_pose[2]) + partial_y_x * np.cos(self.current_pose[2])) -
                         f_y * (partial_x_y * np.sin(self.current_pose[2]) + partial_x_x * np.cos(self.current_pose[2])))
             yaw_velocity = - k_omega_1 * theta_diff + k_omega_2 * theta_deri
+            velocity, yaw_velocity = self.ego_controller(self.current_pose, self.goal_pose)
+            yaw_velocity = yaw_velocity
         else:
-            _, yaw_velocity = self.ego_controller(self.current_pose, self.goal_pose)
-            yaw_velocity = yaw_velocity * k_omega_1
+            velocity, yaw_velocity = self.ego_controller(self.current_pose, self.goal_pose)
+            yaw_velocity = yaw_velocity
         # if yaw_velocity > np.pi / 2:
         #     yaw_velocity = np.pi / 2
         # if yaw_velocity < -np.pi / 2:
@@ -146,9 +148,10 @@ class NFController(object):
         delta = (start_pose[2] - alpha + np.pi) % (2 * np.pi) - np.pi
         return rho, phi, delta
 
-    def ego_controller(self, start_pose, goal_pose, k_1=1.0, k_2=0.8):
+    def ego_controller(self, start_pose, goal_pose, k_1=1.0, k_2=1.0):
+        velocity = 0.8 * np.tanh(distance(start_pose[0:2], goal_pose[0:2]))
         rho, theta, delta = self.cartesian_to_egocentric(start_pose, goal_pose)
-        velocity = 0.1
+        # velocity = 0.1
         yaw_velocity = (- velocity / rho) * (k_2 * (delta - np.arctan(- k_2 * theta)
                                                     ) + (1 + k_1 / (1 + (k_1 * theta) ** 2)) * np.sin(delta))
         return velocity, yaw_velocity

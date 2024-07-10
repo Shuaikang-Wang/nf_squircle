@@ -23,8 +23,8 @@ def plot_init_world(ax, world):
     ax.set_ylim([ymin - 1.0, ymax + 1.0])
     ax.set_aspect('equal', 'box')
     ax.set_axis_off()
-    # start_pose = [0.5,0.4,0.0]  #2.8,0.4,np.pi
-    # ax.plot(start_pose[0], start_pose[1], '*r', markersize=10.0)
+    start_pose = np.array([3.2, 0.4, -np.pi])   #2.8,0.4,np.pi
+    ax.plot(start_pose[0], start_pose[1], '*r', markersize=10.0)
     # world = World('../complex_world/tsp_config/tsp_world_contour_1.yaml')
     # plot_fill_workspace(ax, world.workspace)
     # plot_fill_obstacle(ax, world.obstacles)
@@ -48,19 +48,28 @@ def plot_world(ax, world):
     ax.set_ylim([ymin - 1.0, ymax + 1.0])
     ax.set_aspect('equal', 'box')
     ax.set_axis_off()
-    # start_pose = [0.5,0.4,0.0]  #2.8,0.4,np.pi
-    # ax.plot(start_pose[0], start_pose[1], '*r', markersize=10.0)
+    start_pose = np.array([3.2, 0.4, -np.pi])   #2.8,0.4,np.pi
+    ax.plot(start_pose[0], start_pose[1], '*r', markersize=10.0)
     # world = World('../complex_world/tsp_config/tsp_world_contour_1.yaml')
-    # plot_fill_workspace(ax, world.workspace)
-    # plot_fill_obstacle(ax, world.obstacles)
+    plot_fill_workspace(ax, world.workspace)
+    plot_fill_obstacle(ax, world.obstacles)
     plot_workspace_boundary(ax, world.workspace)
     plot_obstacle_boundary(ax, world.obstacles)
-    # plot_workspace_boundary(ax, world.workspace, line_color = 'k',
-                            # line = (0, (1, 1)), line_width = 1.6, z_order=15)
-    # plot_obstacle_boundary(ax, world.obstacles, line_color = 'k',
-                        #    line = (0, (1, 1)), line_width = 1.6, z_order=15)
+    plot_workspace_boundary(ax, world.workspace, line_color = 'k',
+                            line = (0, (1, 1)), line_width = 1.6, z_order=15)
+    plot_obstacle_boundary(ax, world.obstacles, line_color = 'k',
+                           line = (0, (1, 1)), line_width = 1.6, z_order=15)
     # new_world = World('../complex_world/auto_config/new_tsp_world.yaml')
     # plot_new_obstacle(ax, new_world.obstacles)
+    return ax
+
+def plot_inflate_world(ax, world):
+    plot_fill_inflate_workspace(ax, world.workspace)
+    plot_fill_inflate_obstacle(ax, world.obstacles)
+    plot_inflate_workspace_boundary(ax, world.workspace, line_color = 'b',
+                            line = '-', line_width = 1.0, z_order=15)
+    plot_inflate_obstacle_boundary(ax, world.obstacles, line_color = 'b',
+                           line = '-', line_width = 1.0, z_order=15)
     return ax
 
 def plot_init_workspace_boundary(ax, workspace, line_color = 'k', line = '-',line_width = 2.0, z_order = 10):
@@ -113,6 +122,24 @@ def plot_obstacle_boundary(ax, obstacles, line_color = 'k', line = '-', line_wid
                 inner_boundary = plt.Circle((obs_i.center[0], obs_i.center[1]), radius = obs_i.radius, color='k',
                                             fill=False, linestyle=line, ec="black", linewidth = line_width, zorder = z_order + i)
                 ax.add_patch(inner_boundary)
+            i += 1
+
+
+def plot_inflate_workspace_boundary(ax, workspace, line_color = 'k', line = '-',line_width = 2.0, z_order = 10):
+    for ws in workspace:
+        i = 0
+        for ws_i in ws[1:]:
+            i += 1
+            plot_squircle(ax, ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s, line_color = line_color,
+                            line_style = line, line_width = line_width, plot_z_order = z_order + i)
+
+
+def plot_inflate_obstacle_boundary(ax, obstacles, line_color = 'k', line = '-', line_width = 2.0, z_order = 10):
+    for obs in obstacles:
+        i = 0
+        for obs_i in obs:
+            plot_squircle(ax, obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s, line_color = line_color,
+                            line_style = line, line_width = line_width, plot_z_order = z_order + i)
             i += 1
 
 def plot_new_obstacle(ax, obstacles, line_color = 'k', line = '-', line_width = 1.5, z_order = 10):
@@ -330,7 +357,7 @@ def plot_fill_workspace(ax, workspace):
                     zz = 3.0
                 zv.append(zz)
             zv = np.asarray(zv).reshape(xv.shape)
-            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('gray'), zorder = z_order + i)
+            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('lightgray'), zorder = z_order + i)
 
 def plot_fill_obstacle(ax, obstacles):
     for obs in obstacles:
@@ -361,9 +388,72 @@ def plot_fill_obstacle(ax, obstacles):
                     zz = 3.0
                 zv.append(zz)
             zv = np.asarray(zv).reshape(xv.shape)
-            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('gray'), zorder = z_order + i)
+            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('lightgray'), zorder = z_order + i)
             i += 1
+    
+def plot_fill_inflate_workspace(ax, workspace):
+    z_order=1
+    for ws in workspace:
+        i = 0
+        for ws_i in ws[1:]:
+            i += 1
+            xmin, xmax = ws_i.x_limits()
+            ymin, ymax = ws_i.y_limits()
+            xs = np.linspace(xmin - 0.2, xmax + 0.2, 200)
+            ys = np.linspace(ymin - 0.2, ymax + 0.2, 200)
+            xv, yv = np.meshgrid(xs, ys)
+            zv = []
+            threshold = 0.001
+            for xx, yy in zip(xv.ravel(), yv.ravel()):
+                q = np.array([xx, yy])
+                if distance(ws_i.center, q) < \
+                        compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold:
+                    zz = 0
+                elif (distance(ws_i.center, q) >=
+                        compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) - threshold) and \
+                        (distance(ws_i.center, q) <=
+                        compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold):
+                    zz = 1.0
+                elif distance(ws_i.center, q) > \
+                        compute_squicle_length_ray_plt(q - ws_i.center, ws_i.width / 2, ws_i.height / 2, ws_i.theta, ws_i.s) + threshold:
+                    zz = 2.0
+                else:
+                    zz = 3.0
+                zv.append(zz)
+            zv = np.asarray(zv).reshape(xv.shape)
+            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('cornflowerblue'), zorder = z_order + i)
 
+def plot_fill_inflate_obstacle(ax, obstacles):
+    for obs in obstacles:
+        z_order = 1
+        i = 0
+        for obs_i in obs:
+            xmin, xmax = obs_i.x_limits()
+            ymin, ymax = obs_i.y_limits()
+            xs = np.linspace(xmin - 0.2, xmax + 0.2, 200)
+            ys = np.linspace(ymin - 0.2, ymax + 0.2, 200)
+            xv, yv = np.meshgrid(xs, ys)
+            zv = []
+            threshold = 0.001
+            for xx, yy in zip(xv.ravel(), yv.ravel()):
+                q = np.array([xx, yy])
+                if distance(obs_i.center, q) < \
+                        compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) - threshold:
+                    zz = 0
+                elif (distance(obs_i.center, q) >=
+                      compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) - threshold) and \
+                        (distance(obs_i.center, q) <=
+                         compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) + threshold):
+                    zz = 1.0
+                elif distance(obs_i.center, q) > \
+                        compute_squicle_length_ray_plt(q - obs_i.center, obs_i.width / 2, obs_i.height / 2, obs_i.theta, obs_i.s) + threshold:
+                    zz = 2.0
+                else:
+                    zz = 3.0
+                zv.append(zz)
+            zv = np.asarray(zv).reshape(xv.shape)
+            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('cornflowerblue'), zorder = z_order + i)
+            i += 1
 
 def plot_squircle(ax, center, width, height, theta, s, line_color = 'k', line_style = '-', line_width = 1.5, plot_z_order = 10):
     angle_list = np.linspace(0, 2 * np.pi, 1000)
@@ -474,8 +564,8 @@ def plot_task_area(ax, ec_color = "black", face_color = "deepskyblue", line_widt
 
     # pick_up_regions
     face_color = "deepskyblue"
-    task_area_r_1 = [0.5, 0.5, 0.35, 0.35]
-    task_area_r_2 = [2.4, 3.5, 0.35, 0.35]
+    task_area_r_1 = [0.4, 0.4, 0.35, 0.35]
+    task_area_r_2 = [2.2, 3.5, 0.35, 0.35]
     circle_r_1 = plt.Rectangle((task_area_r_1[0]-task_area_r_1[2] / 2, task_area_r_1[1]-task_area_r_1[3] / 2),
                                width=task_area_r_1[2], height = task_area_r_1[3], fill=True,
                           ec = ec_color, facecolor = face_color, linewidth=line_width, zorder = 29)
@@ -485,7 +575,7 @@ def plot_task_area(ax, ec_color = "black", face_color = "deepskyblue", line_widt
 
     # deliver_regions
     face_color = "plum"
-    task_area_r_3 = [0.8, 3.5, 0.35, 0.35]
+    task_area_r_3 = [0.9, 3.5, 0.35, 0.35]
     task_area_r_4 = [6.3, 0.5, 0.35, 0.35]
     task_area_r_5 = [6.4, 3.0, 0.35, 0.35]
     circle_r_3 = plt.Rectangle((task_area_r_3[0]-task_area_r_3[2] / 2, task_area_r_3[1]-task_area_r_3[3] / 2),

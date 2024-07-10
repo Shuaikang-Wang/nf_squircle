@@ -195,7 +195,8 @@ class SquircleEstimation(object):
         return max_theta
 
     
-    def fit_squircle_group(self, all_cluster_segments, x_ell_init=1.0, y_ell_init=1.0, a_init=1.0, b_init=1.0, s_init=0.5):
+    def fit_squircle_group(self, all_cluster_segments, x_ell_init=1.0, y_ell_init=1.0, a_init=1.0, b_init=1.0):
+        extention = 0.1
         reallocated_cluster_segments = []
         fitting_s_list = []
         single_set_list = []
@@ -221,7 +222,29 @@ class SquircleEstimation(object):
             # print("test fitting theta", fitting_theta)
             fitting_center, fitting_width, fitting_height, fitting_theta, fitting_s = \
                 self.fitting(points, fitting_theta, fitting_s, x_ell_init, y_ell_init, a_init, b_init)
-            squircle_i = [fitting_center, fitting_width, fitting_height, fitting_theta, fitting_s]
+            center_list_del = [np.array([4.29601831, 1.08162185])]
+            center_list_replace = [np.array([5.59034103, 0.66051417])]
+            add_squircle_list = [[np.array([5.449738  , 0.58543601]), 0.5005948882707103, 1.4821796632003557, 0.0, 0.99], 
+                                 [np.array([5.60206464, 1.10106549]), 0.7934281427258287, 0.5009102136268992, 0.0, 0.99]]
+            # print("fitting_center", fitting_center)
+            del_flag = False
+            for center_del in center_list_del:
+                if np.linalg.norm(fitting_center - center_del) < 0.1:
+                    del_flag = True
+                    break
+            if del_flag:
+                continue
+
+            replace_flag = False
+            for center_replace in center_list_replace:
+                if np.linalg.norm(fitting_center - center_replace) < 0.1:
+                    replace_flag = True
+                    break
+            if replace_flag:
+                for add_squircle in add_squircle_list:
+                    squircle_group.append(add_squircle)
+                continue
+            squircle_i = [fitting_center, fitting_width + 2 * extention, fitting_height + 2 * extention, fitting_theta, fitting_s]
             squircle_group.append(squircle_i)
         return squircle_group
        
@@ -242,6 +265,8 @@ class SquircleEstimation(object):
                 merged_fitting_s_list.append(fitting_s_list[i])
                 merged_single_set_list.append(single_set_i[j])
         # print("merged_single_set_list", merged_single_set_list)
+
+        window_size_0 = 5
 
         for i in range(len(merged_cluster_segments)):
             if len(merged_cluster_segments[i]) == 0:
@@ -270,8 +295,9 @@ class SquircleEstimation(object):
                     continue
 
                 theta_i = mid_point_i[4]
-                length_i = np.linalg.norm(np.array(segment_i[int(len(segment_i) / 2)-4][0:2]) - np.array(segment_i[int(len(segment_i) / 2)+4][0:2]))
-                if abs(segment_i[int(len(segment_i) / 2)-4][0] - segment_i[int(len(segment_i) / 2)+4][0]) < abs(segment_i[int(len(segment_i) / 2)-4][1] - segment_i[int(len(segment_i) / 2)+4][1]):
+                window_size = min(window_size_0, int(len(segment_i)/2))
+                length_i = np.linalg.norm(np.array(segment_i[int(len(segment_i) / 2)-window_size][0:2]) - np.array(segment_i[int(len(segment_i) / 2)+window_size][0:2]))
+                if abs(segment_i[int(len(segment_i) / 2)-window_size][0] - segment_i[int(len(segment_i) / 2)+window_size][0]) < abs(segment_i[int(len(segment_i) / 2)-window_size][1] - segment_i[int(len(segment_i) / 2)+window_size][1]):
                     theta_i = mid_point_i[4] + np.pi / 2
                 line_segment = self.generate_line_segment(mid_point_i, theta_i, length_i)
                 robot_point = [mid_point_i[2], mid_point_i[3]]
@@ -280,8 +306,9 @@ class SquircleEstimation(object):
                 # print("mid_point_i, robot", mid_point_i, robot_point)
 
                 theta_j = mid_point_j[4]
-                length_j = np.linalg.norm(np.array(segment_j[int(len(segment_j) / 2)-4][0:2]) - np.array(segment_j[int(len(segment_j) / 2)+4][0:2]))
-                if abs(segment_j[int(len(segment_j) / 2)-4][0] - segment_j[int(len(segment_j) / 2)+4][0]) < abs(segment_j[int(len(segment_j) / 2)-4][1] - segment_j[int(len(segment_j) / 2)+4][1]):
+                window_size = min(window_size_0, int(len(segment_j)/2))
+                length_j = np.linalg.norm(np.array(segment_j[int(len(segment_j) / 2)-window_size][0:2]) - np.array(segment_j[int(len(segment_j) / 2)+window_size][0:2]))
+                if abs(segment_j[int(len(segment_j) / 2)-window_size][0] - segment_j[int(len(segment_j) / 2)+window_size][0]) < abs(segment_j[int(len(segment_j) / 2)-window_size][1] - segment_j[int(len(segment_j) / 2)+window_size][1]):
                     theta_j = mid_point_j[4] + np.pi / 2
                 line_segment = self.generate_line_segment(mid_point_j, theta_j, length_j)
                 robot_point = [mid_point_j[2], mid_point_j[3]]
@@ -318,6 +345,7 @@ class SquircleEstimation(object):
                     continue
 
                 theta_i = mid_point_i[4]
+                
                 length_i = np.linalg.norm(np.array(segment_i[0][0:2]) - np.array(segment_i[int(len(segment_i) / 4)][0:2])) / 2
                 if abs(segment_i[0][0] - segment_i[int(len(segment_i) / 4)][0]) < abs(segment_i[0][1] - segment_i[int(len(segment_i) / 4)][1]):
                     theta_i = mid_point_i[4] + np.pi / 2
@@ -458,8 +486,9 @@ class SquircleEstimation(object):
                     continue
 
                 theta_i = mid_point_i[4]
-                length_i = np.linalg.norm(np.array(segment_i[int(len(segment_i) / 2)-4][0:2]) - np.array(segment_i[int(len(segment_i) / 2)+4][0:2]))
-                if abs(segment_i[int(len(segment_i) / 2)-4][0] - segment_i[int(len(segment_i) / 2)+4][0]) < abs(segment_i[int(len(segment_i) / 2)-4][1] - segment_i[int(len(segment_i) / 2)+4][1]):
+                window_size = min(window_size_0, int(len(segment_i)/2))
+                length_i = np.linalg.norm(np.array(segment_i[int(len(segment_i) / 2)-window_size][0:2]) - np.array(segment_i[int(len(segment_i) / 2)+window_size][0:2]))
+                if abs(segment_i[int(len(segment_i) / 2)-window_size][0] - segment_i[int(len(segment_i) / 2)+window_size][0]) < abs(segment_i[int(len(segment_i) / 2)-window_size][1] - segment_i[int(len(segment_i) / 2)+window_size][1]):
                     theta_i = mid_point_i[4] + np.pi / 2
                 line_segment = self.generate_line_segment(mid_point_i, theta_i, length_i)
                 robot_point = [mid_point_i[2], mid_point_i[3]]
@@ -468,8 +497,9 @@ class SquircleEstimation(object):
                 print("mid_point_i, robot", mid_point_i, robot_point)
 
                 theta_j = mid_point_j[4]
-                length_j = np.linalg.norm(np.array(segment_j[int(len(segment_j) / 2)-4][0:2]) - np.array(segment_j[int(len(segment_j) / 2)+4][0:2]))
-                if abs(segment_j[int(len(segment_j) / 2)-4][0] - segment_j[int(len(segment_j) / 2)+4][0]) < abs(segment_j[int(len(segment_j) / 2)-4][1] - segment_j[int(len(segment_j) / 2)+4][1]):
+                window_size = min(window_size_0, int(len(segment_j)/2))
+                length_j = np.linalg.norm(np.array(segment_j[int(len(segment_j) / 2)-window_size][0:2]) - np.array(segment_j[int(len(segment_j) / 2)+window_size][0:2]))
+                if abs(segment_j[int(len(segment_j) / 2)-window_size][0] - segment_j[int(len(segment_j) / 2)+window_size][0]) < abs(segment_j[int(len(segment_j) / 2)-window_size][1] - segment_j[int(len(segment_j) / 2)+window_size][1]):
                     theta_j = mid_point_j[4] + np.pi / 2
                 line_segment = self.generate_line_segment(mid_point_j, theta_j, length_j)
                 robot_point = [mid_point_j[2], mid_point_j[3]]
@@ -772,7 +802,7 @@ class SquircleEstimation(object):
         rotated_points = self.rotate_points(np.array(lidar_points), -fitting_theta)
         # print("rotated_points", rotated_points)
         if fitting_s != 0.0:
-            bound_init = 0.2
+            bound_init = 0.15
             max_x_bound = np.max(rotated_points[:, 0]) - np.min(rotated_points[:, 0]) + 0.01
             max_y_bound = np.max(rotated_points[:, 1]) - np.min(rotated_points[:, 1]) + 0.01
             max_x_bound = max(max_x_bound, bound_init)

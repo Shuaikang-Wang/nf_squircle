@@ -16,13 +16,13 @@ import pickle
 import datetime
 
 start_pose = np.array([3.2, 0.4, -np.pi])
-p_1 = [0.5, 0.5, -np.pi / 2]
-p_2 = [2.4, 3.5, -0.2]
-d_1 = [0.8, 3.5, -np.pi]
+p_1 = [0.4, 0.4, -np.pi / 2]
+p_2 = [2.2, 3.5, -0.2]
+d_1 = [0.9, 3.5, -np.pi]
 d_2 = [6.3, 0.5, -np.pi / 2]
 d_3 = [6.4, 3.0, -np.pi / 2]
 u_1 = [4.6, 0.5, -np.pi]
-goal_pose_list = [p_1, p_2, d_1, u_1, d_2, d_3]
+goal_pose_list = [p_1, d_1, d_3, d_2]
 
 init_world_config = './CONFIG/workspace.yaml'
 forest_config = './CONFIG/forest_world.yaml'

@@ -17,8 +17,9 @@ from ENV.squircle_estimation import SquircleEstimation
 from ROBOT.robot import Robot
 
 
+
 class Execution(object):
-    def __init__(self, robot, forest_world, dt=0.4):
+    def __init__(self, robot, forest_world, dt=0.2):
         self.robot = robot
         self.forest_world = forest_world
         self.dt = dt
@@ -34,10 +35,11 @@ class Execution(object):
         self.all_squircles = None
         self.construct_forest = None
         self.current_goal = None
-        self.trajectory = [[self.robot.pose[0]], [self.robot.pose[0]]]
+        self.trajectory = [[self.robot.pose[0]], [self.robot.pose[1]]]
         self.all_polygon_list = None
         self.goal_index = 0
         self.grid_map = None
+        self.path = None
 
     def one_step_forward(self, current_step):
         lambda_ = 1e3
@@ -82,8 +84,6 @@ class Execution(object):
         lambda_ = lambda_
         mu_ = mu_
 
-        print("self.robot.pose", self.robot.pose)
-        print("self.current_goal", self.current_goal)
         nf_controller = NFController(self.construct_forest.forest_world,
                                      np.array(self.robot.pose), np.array(self.current_goal),
                                      nf_lambda, nf_mu)
@@ -100,30 +100,29 @@ class Execution(object):
         self.trajectory[1].append(self.robot.pose[1])
 
     def set_robot_goal(self, threshold=1.0):
-        all_polygon_list = self.construct_forest.get_vis_rect_data(inflated_size=0.18)
+        all_polygon_list = self.construct_forest.get_vis_rect_data(inflated_size=0.16)
         self.all_polygon_list = all_polygon_list
 
         robot_pose = self.robot.pose
 
         self.navigation_map = NavigationMap()
         self.navigation_map.construct_planner_rect_multi_goal(robot_pose, self.robot.goal_list[self.goal_index:], self.all_polygon_list)
-        path = self.navigation_map.path
-        print("navigation path", path)
+        self.path = self.navigation_map.path
+        print("navigation path", self.path)
         next_path_index = 1
         current_index = 1
-        next_path_goal = path[next_path_index]
+        next_path_goal = self.path[next_path_index]
 
-        if math.sqrt((self.robot.goal_list[self.goal_index][0] - self.robot.pose[0]) ** 2 + (self.robot.goal_list[self.goal_index][1] - self.robot.pose[1]) ** 2) < 0.3:
-            next_path_goal = self.robot.goal_list[self.goal_index][0]
+        if math.sqrt((self.robot.goal_list[self.goal_index][0] - self.robot.pose[0]) ** 2 + (self.robot.goal_list[self.goal_index][1] - self.robot.pose[1]) ** 2) < 0.5:
+            self.current_goal = self.robot.goal_list[self.goal_index]
             return
 
-        for path_goal in path[next_path_index:]:
+        for path_goal in self.path[next_path_index:]:
             dis_to_goal = math.sqrt(
                 (path_goal[0] - self.robot.pose[0]) ** 2 + (path_goal[1] - self.robot.pose[1]) ** 2)
             if dis_to_goal > 0.3:
                 next_path_goal = path_goal
                 break
-            current_index += 1
 
         dis_to_goal = math.sqrt(
             (next_path_goal[0] - self.robot.pose[0]) ** 2 + (next_path_goal[1] - self.robot.pose[1]) ** 2)
@@ -132,7 +131,7 @@ class Execution(object):
         else:
             # new_theta = next_path_goal[2]
             new_theta = np.arctan2(next_path_goal[1] - self.robot.pose[1], next_path_goal[0] - self.robot.pose[0])
-            if current_index == len(path) - 1:
+            if current_index == len(self.path) - 1:
                 new_theta = np.arctan2(next_path_goal[1] - self.robot.pose[1], next_path_goal[0] - self.robot.pose[0])
             if abs(next_path_goal[0] - self.robot.pose[0]) < 1e-5:
                 next_path_goal = [self.robot.pose[0],
@@ -147,7 +146,13 @@ class Execution(object):
                                   self.robot.pose[1] + threshold * (next_path_goal[1] - self.robot.pose[1]) / dis_to_goal,
                                   new_theta]
             self.current_goal = np.array([next_path_goal[0], next_path_goal[1], next_path_goal[2]])
-        # self.current_goal = np.array([2.8334661933800616, 4.249530909089547, 3.07484481770202578])
+        # if self.current_goal is None:
+        #     self.current_goal = np.array([next_path_goal[0], next_path_goal[1], next_path_goal[2]])
+        
+        # if math.sqrt((next_path_goal[0] - self.current_goal[0]) ** 2 + (next_path_goal[1] - self.current_goal[1]) ** 2) > 0.1:
+        #     self.current_goal = np.array([next_path_goal[0], next_path_goal[1], next_path_goal[2]])
+        
+        # self.current_goal = np.array([5.1574916217426915, 2.3630038032836706, 0.8931640625454165])
 
     def test_one_step(self, current_step):
         self.current_step = current_step

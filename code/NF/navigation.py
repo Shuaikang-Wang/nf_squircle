@@ -48,8 +48,13 @@ class NavigationFunction(object):
         # potential function at point world
         k = self.M + 1
         obs_rep_potential = 1.0
+        sphere2point = SphereToPoint(self.world, self.goal[0:2])
         for obs in self.world.obstacles:
-            obs_rep_potential *= distance(h, self.transformaton(obs[0].center)) ** 2
+            obs_center = obs[0].center
+            # bounded_point_center = sphere2point.compute_T_q(obs_center)
+            # point_center = sphere2point.bounded_pw_to_unbounded(bounded_point_center)
+            point_center = self.transformaton(obs_center)
+            obs_rep_potential *= distance(h, point_center) ** 2
         goal_atr_potential = distance(h, self.transformaton(self.goal[0:2])) ** 2
         return self.mu * goal_atr_potential / (goal_atr_potential + obs_rep_potential ** (1 / k))
 

@@ -11,11 +11,12 @@ from matplotlib.colors import ListedColormap
 from matplotlib.patches import Polygon
 import random
 import math
+import copy
 
+from NF.vis import plot_world, plot_task_area, plot_squircle, plot_init_world, plot_inflate_world
 
-from NF.vis import plot_world, plot_task_area, plot_squircle, plot_init_world
-
-from ENV.construct_forest import ConstructForest
+from ENV.construct_forest import ConstructForest, ForestWorld
+from ENV.geometry import Squircle
 from ENV.line_to_squircle import LineToSquircle
 from ENV.b_spline import KBSpline
 from NF.navigation import NavigationFunction
@@ -37,8 +38,12 @@ def plot_init_data(ax, robot, world):
     plot_task_area(ax)
 
 
-def plot_cluster(ax, sk_clu, world):
-    sk_clu.draw_results(ax, world.cluster_points)
+def plot_cluster(ax, world, COLORS):
+    for points, col in zip(world.cluster_points, COLORS):
+            xy = points
+            # ax.plot(xy[0, 0], xy[0, 1], 'o', markerfacecolor='b', markeredgecolor='b', markersize=6,
+            #         zorder=35)
+            ax.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col), markeredgecolor=tuple(col), markersize=3, zorder=35)
 
 
 def plot_polygon_list(ax, polygon_list):
@@ -63,27 +68,110 @@ def plot_cluster_segment(ax, world):
             segment = np.array(segment)
             ax.plot(segment[-1, 0], segment[-1, 1], 'o', color='r', markersize=6, zorder=36)
 
+def plot_fitting_world(ax, real_world, world):
+    extention = 0.1
+    workspace = []
+    obstacles = []
+    for ws_group in world.workspace:
+        ori_ws_group = [real_world.workspace[0][0]]
+        for ws_i in ws_group[1:]:
+            ori_squircle = Squircle('Rectangular', ws_i.center, ws_i.width - 2 * extention,
+                                    ws_i.height - 2 * extention, ws_i.theta, ws_i.s)
+            ori_ws_group.append(ori_squircle)
+        workspace.append(ori_ws_group)
+    for obs_group in world.obstacles:
+        ori_obs_group = []
+        for obs_i in obs_group:
+            ori_squircle = Squircle('Rectangular', obs_i.center, obs_i.width - 2 * extention,
+                                    obs_i.height - 2 * extention, obs_i.theta, obs_i.s)
+            ori_obs_group.append(ori_squircle)
+        obstacles.append(ori_obs_group)
+    ori_forest_world = ForestWorld(workspace, obstacles)
+    plot_world(ax, ori_forest_world)
+    plot_inflate_world(ax, world)
+
+def plot_nf(ax, execution):
+    extention = 0.04
+    squircle_data = execution.forest_world.squircle_data
+    # print("squircle_data", squircle_data)
+    inflated_squircle_data = []
+    for squircle_i in squircle_data:
+        inflated_squircle_i = [squircle_i[0], squircle_i[1] + 2 * extention, squircle_i[2] + 2 * extention, squircle_i[3], squircle_i[4]]
+        inflated_squircle_data.append(inflated_squircle_i)
+
+    inflated_squircle_data.append(inflated_squircle_i)
+    construct_forest = ConstructForest(inflated_squircle_data)
+    world = construct_forest.forest_world
+
+    for ws_group in world.workspace:
+        print("ws_group num", len(ws_group))
+        for ws_i in ws_group:
+            print("ws_i", ws_i, ws_i.center, ws_i.width, ws_i.height, ws_i.theta, ws_i.s)
+    for obs_group in world.obstacles:
+        print("obs_group num", len(obs_group))
+        for obs_i in obs_group:
+            print("obs_i", obs_i, obs_i.center, obs_i.width, obs_i.height, obs_i.theta, obs_i.s)
+    
+    """
+    5
+    nf_lambda= 1e5
+    nf_mu = [1e10, 1e10, 1e3, 1e2, 1e2, 1e2]
+    29
+    nf_lambda= 1e5
+    nf_mu = [1e50, 1e50, 1e20, 1e20, 1e20, 1e20]
+    144
+    nf_lambda= 1e9
+    nf_mu = [1e200, 1e100, 1e100, 1e50, 1e50, 1e50]
+    262
+    nf_lambda= 6e9
+    nf_mu = [1e200, 1e100, 1e100, 1e50, 1e50, 1e50]
+    345
+    nf_lambda= 1e12
+    nf_mu = [1e200, 1e100, 1e100, 1e100, 1e100, 1e100]
+    410
+    nf_lambda= 5e12
+    nf_mu = [1e200, 1e100, 1e100, 1e100, 1e100, 1e100]
+    """
+    
+    nf_lambda= 1e10
+    nf_mu = [1e200, 1e100, 1e100, 1e50, 1e50, 1e50]
+    goal = execution.path[1]
+    global_nf = NavigationFunction(world,
+                                   np.array(goal), 
+                                   nf_lambda=nf_lambda, nf_mu=nf_mu)
+    x_min, x_max = [-0.2, 7.2]
+    y_min, y_max = [-0.2, 4.2]
+    resolution = 0.01
+    x = np.arange(x_min, x_max, resolution)
+    y = np.arange(y_min, y_max, resolution)
+    xx, yy = np.meshgrid(x, y)
+    zz_nav = global_nf.evaluate_potential(xx, yy, threshold=0.0, radius=None)
+
+    contour_levels = [0, 0.0005, 0.005, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.85, 0.9, 1.0]
+    ctour = ax.contour(xx, yy, zz_nav, contour_levels, linewidths = 1.0, zorder=1)
 
 def plot_nm_path(ax, path):
     path_x = []
     path_y = []
     path_theta = []
     for path_i in path[1:-1]:
-        ax.plot(path_i[0], path_i[1], '.k')
+        ax.plot(path_i[0], path_i[1], marker='o', color='b', markersize=5, zorder=41)
         path_x.append(path_i[0])
         path_y.append(path_i[1])
         path_theta.append(path_i[2])
+    ax.plot(path[-1][0], path[-1][1], marker='o', color='b', markersize=5, zorder=41)
     path_x.append(path[-1][0])
     path_y.append(path[-1][1])
     path_theta.append(path[-1][2])
     # print("final waypoint", self.path[-1])
     # for i in range(len(path_x)):
-    #     ax.quiver(path_x[i], path_y[i], np.cos(path_theta[i]), np.sin(path_theta[i]), units='xy', width=0.05,
-    #               headwidth=3.3, scale=1 / 0.5, color='red', zorder=2)
+        # ax.quiver(path_x[i], path_y[i], np.cos(path_theta[i]), np.sin(path_theta[i]), units='xy', width=0.05,
+                #   headwidth=3.3, scale=1 / 0.5, color='red', zorder=2)
     near_path_x = [path[0][0], path[1][0]]
     near_path_y = [path[0][1], path[1][1]]
-    ax.plot(near_path_x, near_path_y, ':', color='gold', linewidth=2.0, zorder=1)
-    ax.plot(path_x, path_y, '-', color='gold', linewidth=2.0, zorder=1)
+    ax.plot(near_path_x, near_path_y, ':', color='gold', linewidth=2.0, zorder=40)
+    ax.plot(path_x, path_y, '-', color='gold', linewidth=2.0, zorder=40)
+    ax.scatter(path[1][0], path[1][1], marker='^', color='blue', s=80, zorder=40)
 
 
 def plot_estimated_squircles(ax, world):
@@ -128,7 +216,7 @@ def plot_trajectory(ax, trajectory):
     path = np.array([[path_x[i], path_y[i]] for i in range(len(path_x))])
     smooth_traj_x, smooth_traj_y = b_spline.traj_smoothing(path)
 
-    ax.plot(smooth_traj_x[1:], smooth_traj_y[1:], '-', color='red', linewidth=2.5, zorder=5)
+    ax.plot(smooth_traj_x[1:], smooth_traj_y[1:], '-', color='red', linewidth=2.5, zorder=40)
 
 
 def plot_contour(ax, main_execute):

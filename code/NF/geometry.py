@@ -286,7 +286,7 @@ class Rectangular(object):
 class Workspace(Rectangular):
     def __init__(self, type, center, width, height, theta, s):
         super().__init__(type, center, width - 0.0, height - 0.0, theta, s)
-        self._radius = 8.0 * max(width, height)  # 8.0 2.0
+        self._radius = 10.0 * max(width, height)  # 8.0 2.0
 
     # def potential(self, q: np.ndarray, s = 0.999) -> float:
     #     center, height, width  = self.center, self.height, self.width
@@ -323,7 +323,7 @@ class Workspace(Rectangular):
     def compute_v(self, q: np.ndarray, beta: float) -> float:
         maxVal = (self.width / 2) ** 2 + (self.height / 2) ** 2
         if distance(q, self.center) < 1.0e-3:
-            return self.radius * (1 - beta / maxVal) * 1.0e3
+            return self.radius * (1 - beta / maxVal) * 1.0e4
         else:
             return self.radius * (1 - beta / maxVal) / distance(q, self.center)
 
