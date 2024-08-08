@@ -57,7 +57,7 @@ COLORS = [(0.6655945812790935, 0.7991128931718545, 0.30916315164416913), (0.3282
 
 
 
-for i in range(0, 411):
+for i in range(86, 87):
     # if i == 508 or i == 520:plot_fitting_world(ax2, execution_data[i].forest_world))
     #     continue
     ax1.clear()
@@ -74,14 +74,14 @@ for i in range(0, 411):
 
     plot_cluster(ax2, execution_data[i].forest_world, COLORS)
     plot_init_data(ax2, execution_data[i].robot, execution_data[i].forest_world)
-    # plot_nf(ax2, execution_data[i])
+    plot_nf(ax2, execution_data[i])
     # plot_cluster_segment(ax2, execution_data[i].forest_world)
     # plot_fitting_squircle(ax2, execution_data[i].forest_world)
     plot_fitting_world(ax2, execution_data[i].forest_world, execution_data[i].construct_forest.forest_world)
     # plot_polygon_list(ax2, execution_data[i].all_polygon_list)
     plot_nm_path(ax2, execution_data[i].path)
     # plot_occupancy_world(ax2, execution_data[i], grid_map, grid_wall, grid_resolution)
-    file_path = './DATA/figure_data'
+    file_path = './DATA/nf_data'
     current_date = datetime.datetime.now().strftime("snap_%Y_%m_%d")
     folder_path = os.path.join(file_path, current_date)
     # folder_path = './DATA/figure_data/snap_test'

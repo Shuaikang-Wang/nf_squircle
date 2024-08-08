@@ -147,7 +147,7 @@ def plot_nf(ax, execution):
     xx, yy = np.meshgrid(x, y)
     zz_nav = global_nf.evaluate_potential(xx, yy, threshold=0.0, radius=None)
 
-    contour_levels = [0, 0.0005, 0.005, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.85, 0.9, 1.0]
+    contour_levels = [0, 0.0005, 0.005, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.9, 1.0]
     ctour = ax.contour(xx, yy, zz_nav, contour_levels, linewidths = 1.0, zorder=1)
 
 def plot_nm_path(ax, path):

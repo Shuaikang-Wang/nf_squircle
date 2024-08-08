@@ -18,7 +18,7 @@ d_1 = [0.9, 3.5, -np.pi]
 d_2 = [6.3, 0.5, -np.pi / 2]
 d_3 = [6.4, 3.0, -np.pi / 2]
 u_1 = [4.6, 0.5, -np.pi]
-goal_pose_list = [p_2, d_1, u_1, d_2, d_3]
+goal_pose_list = [p_1, d_1, d_3, d_2]
 
 max_step = 10000
 
@@ -34,7 +34,7 @@ with open(folder_path_execution + '/execution.pickle', 'rb') as f:
 current_frame = len(execution_data) - 1
 print("all pickle frame", current_frame)
 
-current_frame = 259
+current_frame = 410
 
 execution_data = execution_data[:current_frame + 1]
 
@@ -43,8 +43,12 @@ main_execute = execution_data[current_frame]
 
 main_execute.robot.goal_list = goal_pose_list
 print("goal_index", main_execute.goal_index)
+# traj = []
+# for i in range(len(main_execute.trajectory[0])):
+#     traj.append([main_execute.trajectory[0][i], main_execute.trajectory[1][i]])
+# print("traj", traj)
 
-for frame in range(current_frame, max_step):
+for frame in range(current_frame, 141):
     current_frame = frame
     print("=============current frame is: " + str(current_frame) + "==============")
 

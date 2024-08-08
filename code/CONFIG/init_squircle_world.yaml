@@ -1,0 +1,46 @@
+obstacles:
+        -    shape: Star
+             star:
+                     -   type: Rectangular
+                         center:
+                               - 3.13
+                               - 1.05
+                         width: 0.2
+                         height: 0.2
+                         theta: 0.0
+                         s: 0.0
+
+
+        -    shape: Star
+             star:
+                     -   type: Rectangular
+                         center:
+                               - 2.56
+                               - 1.35
+                         width: 0.5
+                         height: 1.2
+                         theta: 0.0
+                         s: 0.99
+
+
+workspace:
+        -   shape: StarTree
+            stars:
+                    -    type: Workspace
+                         center:
+                               - 3.5
+                               - 2.0
+                         width: 7.0
+                         height: 4.0
+                         theta: 0.0
+                         s: 0.99
+
+                    -    type: Rectangular
+                         center:
+                               - 3.95
+                               - 0.505
+                         width: 0.2
+                         height: 1.4
+                         theta: 0.0
+                         s: 0.99
+#nf_lambda=1e2, nf_mu = [1e25, 1e16, 1e10]

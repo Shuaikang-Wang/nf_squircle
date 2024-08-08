@@ -48,8 +48,8 @@ def plot_world(ax, world):
     ax.set_ylim([ymin - 1.0, ymax + 1.0])
     ax.set_aspect('equal', 'box')
     ax.set_axis_off()
-    start_pose = np.array([3.2, 0.4, -np.pi])   #2.8,0.4,np.pi
-    ax.plot(start_pose[0], start_pose[1], '*r', markersize=10.0)
+    # start_pose = np.array([3.2, 0.4, -np.pi])   #2.8,0.4,np.pi
+    # ax.plot(start_pose[0], start_pose[1], '*r', markersize=10.0)
     # world = World('../complex_world/tsp_config/tsp_world_contour_1.yaml')
     plot_fill_workspace(ax, world.workspace)
     plot_fill_obstacle(ax, world.obstacles)
@@ -421,7 +421,7 @@ def plot_fill_inflate_workspace(ax, workspace):
                     zz = 3.0
                 zv.append(zz)
             zv = np.asarray(zv).reshape(xv.shape)
-            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('cornflowerblue'), zorder = z_order + i)
+            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('#838bc5'), zorder = z_order + i) #cornflowerblue
 
 def plot_fill_inflate_obstacle(ax, obstacles):
     for obs in obstacles:
@@ -452,7 +452,7 @@ def plot_fill_inflate_obstacle(ax, obstacles):
                     zz = 3.0
                 zv.append(zz)
             zv = np.asarray(zv).reshape(xv.shape)
-            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('cornflowerblue'), zorder = z_order + i)
+            ax.contourf(xv, yv, zv, levels=[0.0, 1.0], colors=('#838bc5'), zorder = z_order + i)
             i += 1
 
 def plot_squircle(ax, center, width, height, theta, s, line_color = 'k', line_style = '-', line_width = 1.5, plot_z_order = 10):
